@@ -12,4 +12,4 @@ stories: {directory: docs/stories, glob: '*.md'}
 scenarios: {globs: []}
 plans: {directory: docs/plans}
 gates:
-  - {name: unit-tests, glob: 'scripts/**/*.py', run: 'PYTHONPATH=scripts:tests uv run --quiet --no-project --with pyyaml python3 -m unittest discover -s tests', level: pre-push}
+  - {name: unit-tests, glob: 'scripts/**/*.py', run: 'PYTHONPATH=scripts:tests uv run --quiet --no-project --with pyyaml --with gherkin-official==42.0.1 python3 -m unittest discover -s tests', level: pre-push}

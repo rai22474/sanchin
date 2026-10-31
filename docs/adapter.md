@@ -23,6 +23,7 @@ terms:                       # what the project calls each artifact
   milestone: milestone
 layers: [epic, narrative]    # optional layers in use; empty = stories only
 components: [app, api]       # one plan per component a story touches
+merge: local                 # local: merge into main | pr: push and open a pull request
 
 base_docs:                   # read by the skills (see artifacts.md)
   mission_vision: docs/product/vision.md
@@ -56,6 +57,7 @@ stories:
   superseded_index: docs/stories/superseded.md
   delta_heading: Scenario delta
   rules_since: '2026-11-01'
+  legacy: []                   # implemented stories that predate the rules
 
 scenarios:
   globs: ['{component}/tests/features/**/*.feature']
@@ -75,12 +77,12 @@ plans:
   open_questions_section: Open questions
   constitution:
     section: Constitution checklist
-    globs: [docs/architecture/smells/*.md]
+    globs: [docs/architecture/smells/*.md, 'docs/{component}/standards/*.md']
     verdicts: [n/a, ok, exception]   # the last one needs a D-n
 
 gates:
   - {name: ruff, glob: '*.py', run: 'uv run ruff check {file}', level: edit}
-  - {name: unit, glob: '*.py', run: 'uv run pytest -q', level: pre-push}
+  - {name: unit, glob: '*.py', run: 'uv run pytest -q', level: pre-push, timeout: 600}
 ```
 
 ## Fields
@@ -91,13 +93,14 @@ gates:
 | `language`, `terms` | skills | The skills write artifacts in this language and with these names. |
 | `layers` | skills | `epic`, `narrative`, `milestone`. Off by default. |
 | `components` | skills, validator | `{component}` in any glob expands to each one. |
+| `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process.md](process.md#38-close-retro-and-merge)). |
 | `base_docs.*` | skills | Where the four base documents, decisions, issues, proposals and templates live. |
 | `docs.*` | validator | Progressive-context rules ([context.md](context.md)). |
-| `stories.*` | validator, skills | Story rules ([artifacts.md](artifacts.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history. |
+| `stories.*` | validator, skills | Story rules ([artifacts.md](artifacts.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. |
 | `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. |
 | `acceptance.*` | developer, maintainer | How to run acceptance scenarios, and whether a run is costly. |
-| `plans.*` | validator | Plan rules ([artifacts.md](artifacts.md#plan)). |
-| `gates[]` | hook, `sanchin gates` | `level` is `edit`, `pre-commit`, `pre-push` or `ci`; `{file}` is replaced by the file path ([gates.md](gates.md)). |
+| `plans.*` | validator | Plan rules ([artifacts.md](artifacts.md#plan)). In `constitution.globs`, `{component}` expands to the plan's own component — the first component named in the plan's path — so a plan answers the global rules plus its component's; a plan whose path names no component answers every component's. |
+| `gates[]` | hook, `sanchin gates` | `level` is `edit`, `pre-commit`, `pre-push` or `ci`; `{file}` is replaced by the file path, and a gate without it runs once for all files; `timeout` in seconds, default 120 ([gates.md](gates.md)). |
 
 Unknown keys are ignored by the validator; the skills may read keys it
 doesn't. Paths are relative to the project root.

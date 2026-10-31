@@ -38,13 +38,61 @@ more it costs to find.
 gates:
   - {name: ruff,     glob: '*.py',        run: 'uv run ruff check {file}',  level: edit}
   - {name: hadolint, glob: 'Dockerfile*', run: 'hadolint {file}',           level: edit}
-  - {name: unit,     glob: '*.py',        run: 'uv run pytest -q',          level: pre-push}
+  - {name: unit,     glob: '*.py',        run: 'uv run pytest -q',          level: pre-push, timeout: 600}
 ```
 
 `glob` matches the path relative to the project root or the file name;
-`{file}` is replaced by the quoted relative path. The hook runs the `edit`
-gates; `scripts/sanchin gates --level <level> FILE…` runs any level from a
-git hook or CI.
+`{file}` is replaced by the quoted relative path. A gate with `{file}` runs
+once per matching file; a gate without it (a test suite) runs once when any
+file matches. `timeout` (seconds, default 120) bounds each run; a gate that
+exceeds it fails. The hook runs the `edit` gates;
+`scripts/sanchin gates --level <level> FILE…` runs any level from a git
+hook or CI.
+
+## Git hooks
+
+`sanchin git-hook <level>` is the whole body of a git hook: it works out
+the files the hook concerns, runs that level's gates over them, and at
+`pre-push` also runs `sanchin check`. A non-zero exit blocks the commit or
+the push.
+
+| Level | Files |
+|---|---|
+| `pre-commit` | The staged files (added, copied, modified, renamed). |
+| `pre-push` | The files of every commit being pushed that no remote has yet (from the refs git passes on stdin; `HEAD` when run by hand). |
+
+Gates read the files from the working tree, not the index. The hooks are
+one line each, written by `/sanchin:init` after confirmation:
+
+```sh
+#!/bin/sh
+# .git/hooks/pre-push (or a husky / pre-commit framework step)
+exec "/path/to/sanchin/scripts/sanchin" git-hook pre-push
+```
+
+The path is the plugin's copy, which moves when the plugin upgrades;
+re-running `/sanchin:init` as a doctor checks it. A project that pins
+sanchin in CI can point the hook at that copy instead
+([validator.md](validator.md#where-it-runs)).
+
+## Trust
+
+Gates are shell commands that come from the repository, and the hook runs
+them on every file Claude writes. So the hook runs a repository's gates only
+after the user has approved that exact `gates:` list:
+
+```bash
+"${CLAUDE_PLUGIN_ROOT}"/scripts/sanchin trust   # prints the gates, records the approval
+```
+
+The approval lives outside the repository (`$XDG_STATE_HOME/sanchin/`,
+by default `~/.local/state/sanchin/`), is shared by all the repository's
+worktrees, and lapses when the `gates:` list changes. Until then the hook
+still checks the docs, skips the gates and tells the user why.
+`sanchin gates`, from a git hook or CI, is not affected: running it is
+already an explicit choice. *Why:* a repository nobody has read must not get
+to run commands just because a file was saved in it — and approving
+commands is the user's decision, never the agent's.
 
 ## What sanchin ships
 

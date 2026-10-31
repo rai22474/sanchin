@@ -1,15 +1,18 @@
-"""Read executable scenarios: their names and the criteria each one cites."""
+"""Read executable scenarios: their names and the criteria each one cites.
+
+Feature files are read with the official Gherkin parser, so every language
+Gherkin supports (`# language: fr`, …), rules, outlines and backgrounds are
+understood the way the test runner understands them. A feature file that
+doesn't parse is an error: a scenario that can't parse can't be red for the
+right reason.
+"""
 
 import re
 from dataclasses import dataclass
+from functools import lru_cache
 from pathlib import Path
 
-from .config import Config
-
-_SCENARIO_LINE = re.compile(
-    r"^\s*(?:Scenario Outline|Scenario Template|Scenario|Example|Escenario|Esquema del escenario|Ejemplo):\s*(?P<name>.+?)\s*$",
-    re.MULTILINE,
-)
+from .config import AdapterError, Config
 
 
 @dataclass(frozen=True)
@@ -19,6 +22,18 @@ class Citation:
     feature: Path
 
 
+@dataclass(frozen=True)
+class Scenario:
+    name: str
+    line: int
+
+
+@dataclass(frozen=True)
+class ParsedFeature:
+    scenarios: tuple[Scenario, ...]
+    error: str | None
+
+
 def feature_files(config: Config) -> list[Path]:
     files: set[Path] = set()
     for pattern in config.scenarios.globs:
@@ -26,17 +41,72 @@ def feature_files(config: Config) -> list[Path]:
     return sorted(files)
 
 
-def citations(config: Config, features: list[Path]) -> list[Citation]:
-    comment = re.compile(config.scenarios.trace_comment, re.MULTILINE)
-    found = []
+def citations(config: Config, features: list[Path]) -> tuple[list[Citation], list[str]]:
+    """Trace comments in the feature files, and the problems found reading them.
+
+    A trace comment counts only when the next line that isn't blank, a
+    comment or a tag is a scenario: a loose comment covers nothing.
+    """
+    comment = re.compile(config.scenarios.trace_comment)
+    found, problems = [], []
     for feature in features:
-        for match in comment.finditer(feature.read_text(encoding="utf-8")):
+        parsed = parse_feature(feature)
+        if parsed.error is not None:
+            problems.append(f"{feature}: does not parse as Gherkin: {parsed.error}")
+            continue
+        scenario_lines = {scenario.line for scenario in parsed.scenarios}
+        lines = feature.read_text(encoding="utf-8").splitlines()
+        for index, line in enumerate(lines):
+            match = comment.match(line)
+            if match is None:
+                continue
+            if _next_content_line(lines, index + 1) not in scenario_lines:
+                problems.append(f"{feature}:{index + 1}: trace comment is not above a scenario")
+                continue
             for number in re.split(r",\s*", match.group("criteria").strip()):
                 found.append(Citation(match.group("story"), int(number), feature))
-    return found
+    return found, problems
 
 
 def scenario_names(feature: Path) -> set[str]:
     if not feature.is_file():
         return set()
-    return {match.group("name") for match in _SCENARIO_LINE.finditer(feature.read_text(encoding="utf-8"))}
+    return {scenario.name for scenario in parse_feature(feature).scenarios}
+
+
+def parse_feature(feature: Path) -> ParsedFeature:
+    return _parse(feature.resolve(), feature.stat().st_mtime_ns)
+
+
+@lru_cache(maxsize=None)
+def _parse(feature: Path, _mtime: int) -> ParsedFeature:
+    try:
+        from gherkin.parser import Parser
+        from gherkin.token_scanner import TokenScanner
+    except ImportError as error:
+        raise AdapterError(
+            "the Gherkin parser (gherkin-official) is not available; run the validator through scripts/sanchin, which provides it"
+        ) from error
+    try:
+        document = Parser().parse(TokenScanner(feature.read_text(encoding="utf-8")))
+    except Exception as error:  # the parser raises its own composite exception types
+        return ParsedFeature((), " ".join(str(error).split()))
+    return ParsedFeature(tuple(_scenarios(document.get("feature") or {})), None)
+
+
+def _scenarios(node: dict):
+    for child in node.get("children", []):
+        if "scenario" in child:
+            scenario = child["scenario"]
+            yield Scenario(scenario["name"], scenario["location"]["line"])
+        elif "rule" in child:
+            yield from _scenarios(child["rule"])
+
+
+def _next_content_line(lines: list[str], start: int) -> int | None:
+    """1-based number of the first line from `start` that isn't blank, a comment or a tag."""
+    for index in range(start, len(lines)):
+        stripped = lines[index].strip()
+        if stripped and not stripped.startswith(("#", "@")):
+            return index + 1
+    return None

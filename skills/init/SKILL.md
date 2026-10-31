@@ -19,7 +19,8 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    a recommendation first.
 3. **Write** `.claude/sanchin.yaml` with the project's own names and paths.
    Set `rules_since` to today; list plans of in-progress stories that predate
-   the rules in `plans.legacy`.
+   the rules in `plans.legacy`, and implemented stories with no date in
+   `stories.legacy`.
 4. **Create only what is missing**, after confirmation: a base document
    (grill its content with the user — mission, vision, stack, glossary), a
    minimal constitution, templates (from `${CLAUDE_PLUGIN_ROOT}/templates/`,
@@ -28,11 +29,20 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
 5. **Gates**: list the ones found and propose the ones the stack is missing,
    each with its level ([gates.md](${CLAUDE_PLUGIN_ROOT}/docs/gates.md)).
    Install nothing without confirmation. Offer to replace per-tool edit
-   hooks with the adapter's `gates:` list.
+   hooks with the adapter's `gates:` list, and to write the `pre-commit`
+   and `pre-push` git hooks as one line each calling
+   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin git-hook <level>` (or a step in
+   the project's hook manager, if it has one); never overwrite an existing
+   hook — add the line to it. The hook runs the gates only
+   once the user approves them: show the list and ask the user to run
+   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin trust` themselves — never run it
+   for them ([gates.md](${CLAUDE_PLUGIN_ROOT}/docs/gates.md#trust)).
 6. **Run** `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check` and report.
 
 ## With an adapter (doctor)
 
 Run the validator; compare the adapter against the current adapter format
 (new or renamed fields after a sanchin upgrade, see the changelog); check
-that every path it names still exists; report what to change, as options.
+that every path it names still exists, and that the git hooks calling
+`sanchin git-hook` point at a sanchin copy that exists (an upgrade moves
+the plugin's); report what to change, as options.

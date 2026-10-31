@@ -60,14 +60,14 @@ As a <user>, I want <capability>, so that <value>.
 
 | Rule | Enforced by |
 |---|---|
-| Frontmatter has an id and a known state. | validator |
+| Frontmatter has a unique id and a known state; an implemented story has its date. | validator |
 | `plan` and `scenarios` paths exist. An in-progress story has its plan; a story implemented on or after `rules_since` has its plan and scenarios (technical stories need no scenarios). | validator |
 | No doubt marker (`[DOUBT: …]`) once the story leaves `pending`. | validator |
 | Every criterion of a story implemented on or after `rules_since` is cited by a scenario, unless it carries the exemption text; every citation names an existing criterion. | validator |
 | A supersedes link points to an existing story; the superseded-by table is up to date. | validator |
 | Scenario delta matches the feature files: before implementation `~` and `−` exist; after it `+` and `~` exist and `−` is gone. | validator |
 | The story says only the "what": no code, no current state. | review |
-| An implemented story is never edited. | review (and git history) |
+| An implemented story, and its plans, are never edited after the commit that set it implemented (skipped without git, for `stories.legacy`, and while the close isn't committed). | validator |
 
 ## Scenarios
 
@@ -84,7 +84,7 @@ Feature: export
 
 | Rule | Enforced by |
 |---|---|
-| Each scenario covering a criterion carries the trace comment above it. | validator (through criteria coverage) |
+| Each scenario covering a criterion carries the trace comment above it; a trace comment not above a scenario is an error. | validator |
 | Red for the right reason before the code exists. | developer, review |
 
 ## Plan
@@ -116,8 +116,8 @@ implemented.
 | Rule | Enforced by |
 |---|---|
 | In progress: Current state, Design and Steps exist. Implemented: also Implementation and Review. | validator (`required_sections`) |
-| Open questions empty once the story is in progress. | validator |
-| Constitution checklist answers every constitution item with an allowed verdict; every exception names a `D-n`. | validator |
+| Open questions empty once the story is in progress — the story goes in progress only after the technical grill closes them. | validator |
+| Constitution checklist answers every constitution item that applies to the plan (global rules plus its component's) with an allowed verdict; every exception names a `D-n`. | validator |
 | Plans that predate the rules are listed in `plans.legacy` and skipped. | validator |
 | The plan doesn't restate the story; the contract lives in the provider's plan only. | review |
 

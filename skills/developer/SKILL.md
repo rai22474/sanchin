@@ -1,6 +1,6 @@
 ---
 name: developer
-description: Runs a feature from idea to merged code — grill the idea into an epic, break it into stories, then per story in its own worktree (functional grill, scenarios red, one plan per component, technical grill, cross-check, green, reviews, close, retro, merge). Use when starting a new epic or feature, or when asked to prepare or build the next story.
+description: Runs a feature from idea to merged code — grill the idea into an epic, break it into stories, then per story in its own worktree (functional grill, scenarios red, one plan per component, technical grill, cross-check, green, reviews, close, retro, merge). In a project set up for sanchin (one with .claude/sanchin.yaml), use when starting a new epic or feature, or when asked to prepare or build the next story.
 ---
 
 What to build is `/sanchin:product-owner`'s question and whether it fits is

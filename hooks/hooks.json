@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/sanchin --project \"${CLAUDE_PROJECT_DIR}\" hook",
+            "command": "[ -f \"${CLAUDE_PROJECT_DIR}/.claude/sanchin.yaml\" ] || exit 0; \"${CLAUDE_PLUGIN_ROOT}\"/scripts/sanchin --project \"${CLAUDE_PROJECT_DIR}\" hook",
             "statusMessage": "sanchin: checking the edited file...",
             "timeout": 180
           }

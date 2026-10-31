@@ -1,13 +1,17 @@
 import io
 import json
+import subprocess
+import tempfile
 import unittest
-from contextlib import redirect_stdout
+from pathlib import Path
+from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
 
-from fixture import Project, story
+from fixture import ADAPTER, Project, story
 
 from sanchin_validator.cli import collect_errors, main
 from sanchin_validator.config import AdapterError, load_config
+from sanchin_validator.markdown import parse_frontmatter
 
 
 class ValidatorTest(unittest.TestCase):
@@ -19,9 +23,18 @@ class ValidatorTest(unittest.TestCase):
             "# Superseded\n\n[Docs](index.md)\n\n<!-- sanchin:superseded-by:start -->\n<!-- sanchin:superseded-by:end -->\n",
         )
         self.project.write("app/features/thing.feature", FEATURE)
+        self._trust_directory = tempfile.TemporaryDirectory()
+        trust_env = mock.patch.dict("os.environ", {"SANCHIN_TRUST_FILE": f"{self._trust_directory.name}/trusted.json"})
+        trust_env.start()
+        self.addCleanup(trust_env.stop)
 
     def tearDown(self):
         self.project.close()
+        self._trust_directory.cleanup()
+
+    def trust(self, project=None):
+        with redirect_stdout(io.StringIO()):
+            main(["--project", str(project or self.project.root), "trust"])
 
     def errors(self, *checks):
         return collect_errors(load_config(self.project.root), list(checks))
@@ -155,13 +168,219 @@ class ValidatorTest(unittest.TestCase):
         self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/p.md\n"))
         self.assertEqual(self.errors("plans"), [])
 
+    # --- fixes -------------------------------------------------------------
+
+    def test_implemented_story_needs_a_date(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "implemented"))
+        self.assertTrue(any("needs its 'date'" in error for error in self.errors("stories")))
+
+    def test_legacy_story_needs_no_date(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER.replace("  superseded_index:", "  legacy: [docs/stories/story-1.md]\n  superseded_index:"),
+        )
+        self.project.write("docs/stories/story-1.md", story("ST-1", "implemented"))
+        self.write_superseded_index()
+        self.assertEqual(self.errors("stories", "plans"), [])
+
+    def test_plan_answers_only_its_components_constitution(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER.replace("components: [app]", "components: [app, api]").replace(
+                "globs: [docs/constitution/*.md]", "globs: [docs/constitution/*.md, 'docs/constitution/{component}/*.md']"
+            ),
+        )
+        self.project.write("docs/constitution/tramp-data.md", "# Tramp data\n")
+        self.project.write("docs/constitution/app/ui-state.md", "# UI state\n")
+        self.project.write("docs/constitution/api/idempotency.md", "# Idempotency\n")
+        plan = PLAN_IN_PROGRESS.replace("- tramp-data: n/a", "- tramp-data: n/a\n- ui-state: ok")
+        self.project.write("docs/plans/app/p.md", plan)
+        self.project.write("docs/plans/p.md", plan)
+        self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/app/p.md, docs/plans/p.md\n"))
+        errors = self.errors("plans")
+        self.assertEqual([error for error in errors if "plans/app/p.md" in error], [])
+        # A plan whose component can't be told from its path answers every component's rules.
+        self.assertTrue(any("docs/plans/p.md" in error and "'idempotency'" in error for error in errors))
+
+    def git(self, *arguments):
+        subprocess.run(
+            ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", str(self.project.root), *arguments],
+            check=True,
+            capture_output=True,
+        )
+
+    def close_story_in_git(self):
+        self.project.write("docs/plans/p.md", PLAN_IMPLEMENTED)
+        self.project.write(
+            "docs/stories/story-1.md",
+            story("ST-1", "implemented", "date: 2025-01-01\nplan: docs/plans/p.md\n"),
+        )
+        self.write_superseded_index()
+        self.git("init", "-q", "-b", "main")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "close ST-1")
+
+    def immutability_errors(self):
+        return [error for error in self.errors("stories") if "edited after it was implemented" in error]
+
+    def test_untouched_implemented_story_passes(self):
+        self.close_story_in_git()
+        self.assertEqual(self.immutability_errors(), [])
+
+    def test_editing_an_implemented_story_fails(self):
+        self.close_story_in_git()
+        path = self.project.root / "docs/stories/story-1.md"
+        path.write_text(path.read_text().replace("The first thing.", "Something else."))
+        self.assertEqual(len(self.immutability_errors()), 1)
+
+    def test_editing_an_implemented_storys_plan_fails(self):
+        self.close_story_in_git()
+        (self.project.root / "docs/plans/p.md").write_text(PLAN_IMPLEMENTED + "\nlater note\n")
+        self.git("commit", "-q", "-am", "touch plan")
+        self.assertIn("docs/plans/p.md", self.immutability_errors()[0])
+
+    def test_story_closing_in_the_working_tree_is_not_yet_frozen(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/p.md\n"))
+        self.project.write("docs/plans/p.md", PLAN_IN_PROGRESS)
+        self.git("init", "-q", "-b", "main")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "start ST-1")
+        self.project.write(
+            "docs/stories/story-1.md",
+            story("ST-1", "implemented", "date: 2025-01-01\nplan: docs/plans/p.md\n"),
+        )
+        self.assertEqual(self.immutability_errors(), [])
+
+    def git_hook(self, level, stdin=""):
+        with mock.patch("sys.stdin", io.StringIO(stdin)), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            return main(["--project", str(self.project.root), "git-hook", level])
+
+    def test_pre_commit_hook_runs_gates_on_staged_files_only(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER_HEAD + "gates:\n  - {name: log, glob: '*.py', run: 'echo {file} >> ran.log', level: pre-commit}\n",
+        )
+        self.git("init", "-q", "-b", "main")
+        self.project.write("app/staged.py", "x = 1\n")
+        self.project.write("app/unstaged.py", "x = 1\n")
+        self.git("add", "app/staged.py")
+        self.assertEqual(self.git_hook("pre-commit"), 0)
+        self.assertEqual((self.project.root / "ran.log").read_text().split(), ["app/staged.py"])
+
+    def test_pre_push_hook_runs_gates_on_pushed_commits_and_the_check(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER_HEAD + "gates:\n  - {name: suite, glob: '*.py', run: 'echo run >> ran.log', level: pre-push}\n",
+        )
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
+        self.write_superseded_index()
+        self.git("init", "-q", "-b", "main")
+        self.project.write("app/main.py", "x = 1\n")
+        self.git("add", "-A")
+        self.git("commit", "-q", "-m", "one")
+        head = subprocess.run(["git", "-C", str(self.project.root), "rev-parse", "HEAD"], capture_output=True, text=True).stdout.strip()
+        self.assertEqual(self.git_hook("pre-push", f"refs/heads/main {head} refs/heads/main {'0' * 40}\n"), 0)
+        self.assertEqual((self.project.root / "ran.log").read_text().split(), ["run"])
+        self.project.write("docs/guide.md", "# Guide\n\nno navigation\n")
+        self.assertEqual(self.git_hook("pre-push", ""), 1)
+
+    def test_feature_in_another_language_is_traced(self):
+        self.project.write(
+            "app/features/thing.feature",
+            "# language: fr\nFonctionnalité: chose\n\n  Règle: r\n\n    # ST-1: AC 1\n    @lent\n    Scénario: première chose\n      Soit rien\n",
+        )
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
+        self.write_superseded_index()
+        self.assertEqual(self.errors("stories"), [])
+
+    def test_feature_that_does_not_parse_fails(self):
+        self.project.write("app/features/thing.feature", "Feature: thing\n  Scenario: x\n    Given a\n    Gven typo after a step\n")
+        self.assertTrue(any("does not parse as Gherkin" in error for error in self.errors("stories")))
+
+    def test_unknown_merge_mode_is_rejected(self):
+        self.project.write(".claude/sanchin.yaml", ADAPTER.replace("components: [app]", "components: [app]\nmerge: squash"))
+        with self.assertRaises(AdapterError):
+            load_config(self.project.root)
+
+    def test_duplicated_story_id_fails(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
+        self.project.write("docs/stories/story-2.md", story("ST-1", "pending"))
+        self.assertTrue(any("id ST-1 is also used by" in error for error in self.errors("stories")))
+
+    def test_frontmatter_comments_are_ignored(self):
+        self.project.write(
+            "docs/stories/story-1.md",
+            story("ST-1", "pending            # pending | in progress | implemented", "# a comment line\n"),
+        )
+        self.write_superseded_index()
+        self.assertEqual(self.errors("stories"), [])
+
+    def test_frontmatter_keeps_link_anchors(self):
+        fields, _ = parse_frontmatter("---\nplan: docs/plans/p.md#design  # why\n---\n")
+        self.assertEqual(fields["plan"], "docs/plans/p.md#design")
+
+    def test_loose_trace_comment_covers_nothing(self):
+        self.project.write("app/features/thing.feature", "Feature: thing\n\n  # ST-1: AC 1\n  Background:\n    Given x\n")
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
+        self.assertTrue(any("trace comment is not above a scenario" in error for error in self.errors("stories")))
+
+    def test_trace_comment_may_sit_above_tags(self):
+        self.project.write("app/features/thing.feature", "Feature: thing\n\n  # ST-1: AC 1\n  @slow\n  Scenario: x\n")
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
+        self.write_superseded_index()
+        self.assertEqual(self.errors("stories"), [])
+
+    def test_code_reference_matches_whole_path_segments(self):
+        self.project.write("app/data.py", "x = 1\n")
+        self.project.write("docs/guide.md", "# Guide\n\n[Docs](index.md)\n\nSee `a.py:1`.\n")
+        self.project.write("docs/index.md", "# Docs\n\n[g](guide.md) [s](stories-superseded.md)\n")
+        self.assertTrue(any("path not found: a.py" in error for error in self.errors("docs")))
+
+    def test_suite_gate_runs_once_for_many_files(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER_HEAD + "gates:\n  - {name: suite, glob: '*.py', run: 'echo run >> runs.log', level: pre-push}\n",
+        )
+        main(["--project", str(self.project.root), "gates", "--level", "pre-push", "a.py", "b.py", "c.py"])
+        self.assertEqual((self.project.root / "runs.log").read_text().count("run"), 1)
+
+    def test_gate_timeout_is_a_failure_not_a_crash(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER_HEAD + "gates:\n  - {name: slow, glob: '*.py', run: 'sleep 5', level: pre-push, timeout: 1}\n",
+        )
+        self.assertEqual(main(["--project", str(self.project.root), "gates", "--level", "pre-push", "a.py"]), 1)
+
+    def test_hook_reports_a_broken_adapter(self):
+        self.project.write(".claude/sanchin.yaml", "version: 1\n")
+        self.assertEqual(self.run_hook_code({"tool_input": {"file_path": str(self.project.root / "x.py")}}), 1)
+
     # --- hook --------------------------------------------------------------
 
     def test_hook_blocks_on_failing_edit_gate(self):
+        self.trust()
         path = self.project.write("app/main.py", "# TODO later\n")
         output = self.run_hook({"tool_input": {"file_path": str(path)}})
         self.assertEqual(json.loads(output)["decision"], "block")
         self.assertIn("gate no-todo failed", output)
+
+    def test_hook_does_not_run_untrusted_gates(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER_HEAD + "gates:\n  - {name: evil, glob: '*.py', run: 'touch ran'}\n",
+        )
+        path = self.project.write("app/main.py", "x = 1\n")
+        output = json.loads(self.run_hook({"tool_input": {"file_path": str(path)}}))
+        self.assertFalse((self.project.root / "ran").exists())
+        self.assertIn("not trusted", output["systemMessage"])
+        self.assertNotIn("decision", output)
+
+    def test_changed_gates_need_trust_again(self):
+        self.trust()
+        self.project.write(".claude/sanchin.yaml", ADAPTER.replace("! grep -n TODO", "touch ran; ! grep -n TODO"))
+        path = self.project.write("app/main.py", "x = 1\n")
+        self.run_hook({"tool_input": {"file_path": str(path)}})
+        self.assertFalse((self.project.root / "ran").exists())
 
     def test_hook_is_silent_without_adapter(self):
         (self.project.root / ".claude/sanchin.yaml").unlink()
@@ -172,6 +391,26 @@ class ValidatorTest(unittest.TestCase):
         with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(stdout):
             main(["--project", str(self.project.root), "hook"])
         return stdout.getvalue()
+
+    def test_hook_checks_the_worktree_that_holds_the_file(self):
+        git = ["git", "-c", "user.name=t", "-c", "user.email=t@t", "-C", str(self.project.root)]
+        subprocess.run([*git, "init", "-q", "-b", "main"], check=True)
+        subprocess.run([*git, "add", "-A"], check=True)
+        subprocess.run([*git, "commit", "-q", "-m", "init"], check=True)
+        with tempfile.TemporaryDirectory() as outside:
+            worktree = Path(outside) / "story"
+            subprocess.run([*git, "worktree", "add", "-q", "-b", "story", str(worktree)], check=True)
+            # The worktree's adapter differs from main's: only it has the gate.
+            (self.project.root / ".claude/sanchin.yaml").write_text(ADAPTER_HEAD, encoding="utf-8")
+            self.trust(worktree)
+            edited = worktree / "app/main.py"
+            edited.write_text("# TODO later\n", encoding="utf-8")
+            output = self.run_hook({"tool_input": {"file_path": str(edited)}})
+        self.assertIn("gate no-todo failed", output)
+
+    def run_hook_code(self, payload):
+        with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
+            return main(["--project", str(self.project.root), "hook"])
 
 
 FEATURE = """
@@ -202,7 +441,9 @@ y
 - [ ] one
 """
 
-PLAN_IMPLEMENTED = PLAN_IN_PROGRESS + "\n## Implementation\n\nz\n\n## Review\n\nw\n"
+ADAPTER_HEAD = ADAPTER[: ADAPTER.index("gates:")]
+
+PLAN_IMPLEMENTED =PLAN_IN_PROGRESS + "\n## Implementation\n\nz\n\n## Review\n\nw\n"
 
 
 if __name__ == "__main__":

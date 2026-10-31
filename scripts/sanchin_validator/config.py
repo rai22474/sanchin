@@ -17,6 +17,10 @@ class AdapterError(Exception):
     pass
 
 
+class MissingAdapterError(AdapterError):
+    """The project has no adapter: it doesn't use sanchin."""
+
+
 @dataclass(frozen=True)
 class DocsConfig:
     root: Path
@@ -46,6 +50,7 @@ class StoriesConfig:
     superseded_index: Path | None
     delta_heading: str
     rules_since: str
+    legacy: tuple[str, ...]
 
 
 @dataclass(frozen=True)
@@ -72,6 +77,11 @@ class Gate:
     glob: str
     run: str
     level: str
+    timeout: int = 120
+
+
+GATE_LEVELS = ("edit", "pre-commit", "pre-push", "ci")
+MERGE_MODES = ("local", "pr")
 
 
 @dataclass(frozen=True)
@@ -91,7 +101,7 @@ class Config:
 def load_config(project_root: Path, adapter_file: Path | None = None) -> Config:
     adapter_file = adapter_file or project_root / ADAPTER_PATH
     if not adapter_file.is_file():
-        raise AdapterError(f"{adapter_file}: no adapter; run /sanchin:init to create one")
+        raise MissingAdapterError(f"{adapter_file}: no adapter; run /sanchin:init to create one")
     raw = _parse_yaml(adapter_file)
     return build_config(project_root, raw)
 
@@ -100,6 +110,8 @@ def build_config(project_root: Path, raw: dict) -> Config:
     if raw.get("version") != SUPPORTED_VERSION:
         raise AdapterError(f"adapter version {raw.get('version')!r} is not supported (expected {SUPPORTED_VERSION})")
     components = tuple(raw.get("components", []))
+    if raw.get("merge", "local") not in MERGE_MODES:
+        raise AdapterError(f"merge {raw.get('merge')!r} is not one of {list(MERGE_MODES)}")
     return Config(
         project_root=project_root,
         language=raw.get("language", "en"),
@@ -157,6 +169,7 @@ def _stories_config(project_root: Path, raw: dict) -> StoriesConfig:
         superseded_index=project_root / superseded_index if superseded_index else None,
         delta_heading=raw.get("delta_heading", "Scenario delta"),
         rules_since=str(raw.get("rules_since", "0000-00-00")),
+        legacy=tuple(raw.get("legacy", [])),
     )
 
 
@@ -178,7 +191,8 @@ def _plans_config(project_root: Path, raw: dict, components: tuple[str, ...]) ->
         required_sections={state: tuple(sections) for state, sections in required.items()},
         open_questions_section=raw.get("open_questions_section", "Open questions"),
         constitution_section=constitution.get("section", "Constitution checklist"),
-        constitution_globs=expand_components(constitution.get("globs", []), components),
+        # Kept unexpanded: `{component}` resolves per plan (see plans.py).
+        constitution_globs=tuple(constitution.get("globs", [])),
         constitution_verdicts=tuple(verdict.lower() for verdict in constitution.get("verdicts", ["n/a", "ok", "exception"])),
         rules_since=str(raw.get("rules_since", "0000-00-00")),
         legacy=tuple(raw.get("legacy", [])),
@@ -189,7 +203,13 @@ def _gate(entry: dict) -> Gate:
     for key in ("name", "glob", "run"):
         if key not in entry:
             raise AdapterError(f"gate {entry!r} has no {key!r}")
-    return Gate(name=entry["name"], glob=entry["glob"], run=entry["run"], level=entry.get("level", "edit"))
+    level = entry.get("level", "edit")
+    if level not in GATE_LEVELS:
+        raise AdapterError(f"gate {entry['name']!r} has level {level!r}; allowed: {list(GATE_LEVELS)}")
+    timeout = entry.get("timeout", 120)
+    if not isinstance(timeout, int) or timeout <= 0:
+        raise AdapterError(f"gate {entry['name']!r} has timeout {timeout!r}; it must be a positive number of seconds")
+    return Gate(name=entry["name"], glob=entry["glob"], run=entry["run"], level=level, timeout=timeout)
 
 
 def _states(raw: dict) -> dict[str, str]:

@@ -1,6 +1,6 @@
 ---
 name: coach
-description: Aggregates the retros of closed stories and bug fixes, finds the signals that reached the rule of two, measures what each review contributes, and proposes process changes each with its eval case. Use monthly, when asked to improve the process or the skills, or when a review or a rule feels redundant or keeps failing.
+description: Aggregates the retros of closed stories and bug fixes, finds the signals that reached the rule of two, measures what each review contributes, and proposes process changes each with its eval case. In a project set up for sanchin (one with .claude/sanchin.yaml), use monthly, when asked to improve the process or the skills, or when a review or a rule feels redundant or keeps failing.
 ---
 
 Read `${CLAUDE_PLUGIN_ROOT}/docs/improvement.md` first: it defines the

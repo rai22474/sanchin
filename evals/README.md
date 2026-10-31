@@ -21,3 +21,6 @@ skill, and keep every case green ([improvement.md](../docs/improvement.md)).
 | architect-quotes-the-vision | Principles come from the project's vision, not the skill. |
 | product-owner-writes-only-after-confirming | Advisory skills write drafts only after confirmation. |
 | init-maps-existing-names | init maps the project's names into the adapter and renames nothing. |
+| maintainer-escalates-behaviour-change | A fix that changes what the user sees goes to the full loop, not the short lane. |
+| reviewer-skips-what-gates-enforce | The reviewer reports what only the project's standards tell, with its source label, and skips what a gate enforces. |
+| coach-waits-for-the-rule-of-two | The coach proposes a change only for a signal seen twice, and changes nothing without the user. |

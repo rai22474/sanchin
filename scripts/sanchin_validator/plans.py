@@ -7,7 +7,9 @@ rules and are skipped):
 - the sections `required_sections[<state>]` lists are present;
 - the open-questions section has no open item left;
 - with a constitution configured, the checklist section answers every
-  constitution item with one of the allowed verdicts, and every exception
+  constitution item that applies to the plan (global globs, plus the
+  `{component}` globs of the component named in the plan's path) with one
+  of the allowed verdicts, and every exception
   (the last verdict in the list) names the plan decision that justifies it.
 
 Reference: docs/artifacts.md#plan.
@@ -16,16 +18,15 @@ Reference: docs/artifacts.md#plan.
 import re
 from pathlib import Path
 
-from .config import Config
+from .config import Config, expand_components
 from .markdown import has_section, section
-from .stories import Story
+from .stories import Story, is_legacy
 
 _OPEN_ITEM = re.compile(r"^\s*(?:[-*]|\d+\.)\s+\S", re.MULTILINE)
 _DECISION_REFERENCE = re.compile(r"\bD-?\d+\b")
 
 
 def check_plans(config: Config, stories: list[Story]) -> list[str]:
-    constitution = constitution_items(config)
     errors = []
     for story in stories:
         state_name = _state_name(config, story)
@@ -34,13 +35,26 @@ def check_plans(config: Config, stories: list[Story]) -> list[str]:
         for plan_path in _plan_paths(config, story):
             if plan_path.is_file():
                 text = plan_path.read_text(encoding="utf-8")
+                constitution = constitution_items(config, plan_component(config, plan_path))
                 errors.extend(f"{plan_path}: {problem}" for problem in _plan_problems(config, text, state_name, constitution))
     return errors
 
 
-def constitution_items(config: Config) -> list[str]:
+def plan_component(config: Config, plan_path: Path) -> str | None:
+    """The component a plan is for: the first component named in its path."""
+    parts = set(plan_path.relative_to(config.project_root).with_suffix("").parts)
+    return next((component for component in config.components if component in parts), None)
+
+
+def constitution_items(config: Config, component: str | None = None) -> list[str]:
+    """Rules a plan must answer: the global ones, plus its component's.
+
+    A `{component}` glob expands to the plan's component only; for a plan
+    whose component can't be told from its path, to every component.
+    """
+    components = (component,) if component else config.components
     items: set[str] = set()
-    for pattern in config.plans.constitution_globs:
+    for pattern in expand_components(config.plans.constitution_globs, components):
         items.update(path.stem for path in config.project_root.glob(pattern) if path.is_file() and path.name != "index.md")
     return sorted(items)
 
@@ -50,7 +64,11 @@ def _state_name(config: Config, story: Story) -> str | None:
     state = story.get(keys.state_key)
     if state == keys.states["in_progress"]:
         return "in_progress"
-    if state == keys.states["implemented"] and (story.get(keys.date_key) or "") >= config.plans.rules_since:
+    if (
+        state == keys.states["implemented"]
+        and not is_legacy(config, story)
+        and (story.get(keys.date_key) or "") >= config.plans.rules_since
+    ):
         return "implemented"
     return None
 

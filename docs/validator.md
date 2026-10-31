@@ -4,8 +4,10 @@
 
 `scripts/sanchin` checks a project's process artifacts against the rules in
 [artifacts.md](artifacts.md) and [context.md](context.md), with the values
-from the project's adapter. It is plain Python (standard library plus
-PyYAML for the adapter); the wrapper runs it through `uv` when available.
+from the project's adapter. It is plain Python (standard library, PyYAML
+for the adapter and the official Gherkin parser, `gherkin-official`, for
+feature files in any Gherkin language); the wrapper runs it through `uv`,
+pinned, when available.
 
 *Why built-in rules with configurable values:* the rules are the process —
 every project gets the same guarantees — while names, paths and cut-off
@@ -20,6 +22,8 @@ scripts/sanchin check --only docs        # docs | stories | plans (repeatable)
 scripts/sanchin check --file docs/x.md   # per-file doc rules on one file
 scripts/sanchin superseded [--write]     # print / rewrite the superseded-by table
 scripts/sanchin gates --level pre-push FILE…   # run the project's gates of one level
+scripts/sanchin git-hook pre-commit|pre-push   # body of a git hook (gates.md#git-hooks)
+scripts/sanchin trust                    # approve the adapter's gates for the hook (gates.md#trust)
 scripts/sanchin hook                     # PostToolUse entry point (stdin payload)
 ```
 
@@ -39,19 +43,20 @@ Inside Claude Code the plugin's copy lives at
 | docs | Relative links resolve. |
 | docs | Every document under `docs.root` except its index has a navigation line in its first lines. |
 | docs | Every directory with more than one document has an `index.md` linking each document and child index, except `unindexed_catalogs`. |
-| stories | Frontmatter: id and known state; `plan`/`scenarios` paths exist; in progress needs plan; implemented since `rules_since` needs plan and scenarios (technical stories excepted). |
+| stories | Frontmatter: unique id and known state; an implemented story has its `date` (YYYY-MM-DD); `plan`/`scenarios` paths exist; in progress needs plan; implemented since `rules_since` needs plan and scenarios (technical stories excepted). Frontmatter is flat `key: value`; ` # comments` are ignored. |
 | stories | No doubt marker after `pending`. |
-| stories | Citations name existing stories and criteria; implemented-since-`rules_since` stories have every criterion cited unless exempted. |
+| stories | Citations name existing stories and criteria; a trace comment counts only above a scenario (tags and comments may sit between); implemented-since-`rules_since` stories have every criterion cited unless exempted. |
 | stories | Supersedes links resolve; the superseded-by table is current. |
 | stories | Scenario delta matches the feature files for the story's state. |
+| stories | An implemented story and its plans are unchanged since the first commit where the story reads implemented (needs git and that commit in the history; `stories.legacy` skipped). |
 | plans | Required sections per state; open questions closed; constitution checklist complete, exceptions justified; `legacy` plans skipped. |
 
 ## Where it runs
 
 | Level | How |
 |---|---|
-| edit | The plugin's PostToolUse hook runs the doc rules on every edited markdown file under `docs.root`, plus the project's `edit` gates. Silent in a project without an adapter. |
-| pre-commit / pre-push | Call `scripts/sanchin check` from the project's hook. Point it at the plugin's copy, or vendor a pinned copy (see below). |
+| edit | The plugin's PostToolUse hook runs the doc rules on every edited markdown file under `docs.root`, plus the project's `edit` gates. The project is the git working tree that holds the edited file — a story's worktree uses its own adapter, docs and cwd, wherever the worktree lives. Silent in a project without an adapter (it exits before starting Python); with an invalid adapter it reports a non-blocking error on each edit, since its gates are off until the adapter is fixed. |
+| pre-commit / pre-push | The project's git hook is one line, `scripts/sanchin git-hook <level>`: it runs that level's gates over the staged or pushed files, plus `check` at pre-push ([gates.md](gates.md#git-hooks)). Point it at the plugin's copy, or vendor a pinned copy (see below). |
 | CI | Check out sanchin at the version the project pins and run its `scripts/sanchin check`. |
 
 A CI step, pinned to a release tag:
@@ -65,5 +70,5 @@ A CI step, pinned to a release tag:
 ## Tests
 
 ```bash
-PYTHONPATH=scripts:tests uv run --no-project --with pyyaml python3 -m unittest discover -s tests
+PYTHONPATH=scripts:tests uv run --no-project --with pyyaml --with gherkin-official==42.0.1 python3 -m unittest discover -s tests
 ```

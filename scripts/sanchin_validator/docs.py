@@ -65,11 +65,18 @@ def _check_code_references(markdown_path: Path, text: str, source_files: list[Pa
         if Path(reference_path).suffix not in checked_suffixes:
             continue
         last_line = int(match.group(3) or match.group(2))
-        matching_files = [path for path in source_files if path.as_posix().endswith(reference_path)]
+        matching_files = [path for path in source_files if _same_file(path, reference_path)]
         problem = _reference_problem(reference_path, last_line, matching_files)
         if problem is not None:
             errors.append(f"{markdown_path}:{line_number(text, match.start())}: {problem}")
     return errors
+
+
+def _same_file(path: Path, reference_path: str) -> bool:
+    """`a.py` names `src/a.py` but not `src/data.py`: match whole path segments."""
+    full = path.as_posix()
+    reference = reference_path.removeprefix("./")
+    return full == reference or full.endswith("/" + reference)
 
 
 def _reference_problem(reference_path: str, last_line: int, matching_files: list[Path]) -> str | None:

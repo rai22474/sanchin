@@ -121,7 +121,8 @@ rewritten by the grill, and the red run has to be repeated.
 One plan per component the story touches (components come from the
 adapter), from the plan template: the technical "how" — current state of
 the code it touches, target design, constitution checklist, risks, ordered
-steps. The story links its plans when it goes in progress.
+steps. The plans stay drafts, and the story stays pending, until the
+technical grill closes them (3.4).
 
 - **The contract between components** (endpoint, payload, ids) is written
   once, in the plan of the component that provides it; the consumer's plan
@@ -144,8 +145,13 @@ now goes back to the story, not into the plan. Research first — a fact
 found in the code routinely resolves what looked like a judgement call.
 With several plans, grill them together: the cross-component contract must
 be closed before any of them is implemented. Answers go to the plan's
-decisions section; the open-questions section must be empty before code
-(the validator checks it).
+decisions section.
+
+When every plan's open-questions section is empty, the story links its
+plans and goes **in progress**. From then on the validator holds the plans
+to the in-progress rules: required sections, no open question, a complete
+constitution checklist. *Why:* "in progress" means code may start; a state
+that allowed open questions would let code start on an undecided design.
 
 ### 3.5 Cross-check before code
 
@@ -208,8 +214,19 @@ and commit on the story's branch. In that same commit:
 - regenerate the derived files and the superseded-by table;
 - write the plan's **Retro** section ([improvement.md](improvement.md)).
 
-Then, with the user's approval, merge the story's branch into `main`,
-push, check that CI actually passed, and remove the worktree.
+Then, with the user's approval, integrate the story's branch the way the
+adapter's `merge` says ([adapter.md](adapter.md)):
+
+- **`local`** (the default): merge it into `main`, push, check that CI
+  actually passed, and remove the worktree.
+- **`pr`**: push the branch and open a pull request whose body is the
+  story, its plans and the review findings with their outcome; check that
+  CI actually passed on it, and stop — merging is the team's step. Remove
+  the worktree once it is merged. A finding raised on the pull request is
+  fixed on the branch the same way as in 3.7, and counts as an escaped
+  finding in the retro. *Why:* where `main` is protected or others review,
+  the pull request is the team's gate; the local reviews feed it instead of
+  replacing it.
 
 ### 3.9 Prepare the next story and stop
 
@@ -228,7 +245,8 @@ human; continuing past it decides the "what" without them.
 4. **Fix** to green, with the local gates.
 5. **Both reviews**, as in 3.7.
 6. **Close**: the issue is marked resolved with what resolved it, in the
-   same commit; retro in the issue.
+   same commit; retro in the issue. Then integrate the branch as in 3.8
+   (`merge: local` or `pr`).
 
 **Escalate to the full loop** when the fix changes behaviour the user sees,
 touches a cross-component contract, or needs a design decision. *Why:* at

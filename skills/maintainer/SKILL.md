@@ -1,6 +1,6 @@
 ---
 name: maintainer
-description: Fixes a known bug through the short lane — the issue is the spec, diagnose first, regression scenario red, fix, both reviews, close — and escalates to the full loop when the fix changes user-visible behaviour, a contract between components, or needs a design decision. Use when asked to fix a bug, an issue, a failing behaviour or a regression.
+description: Fixes a known bug through the short lane — the issue is the spec, diagnose first, regression scenario red, fix, both reviews, close — and escalates to the full loop when the fix changes user-visible behaviour, a contract between components, or needs a design decision. In a project set up for sanchin (one with .claude/sanchin.yaml), use when asked to fix a bug, an issue, a failing behaviour or a regression.
 ---
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and

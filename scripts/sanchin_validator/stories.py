@@ -1,6 +1,8 @@
 """Story rules: the spec is immutable, incremental and traced to scenarios.
 
-- frontmatter has an id and a known state;
+- frontmatter has a unique id and a known state; an implemented story has
+  its date (YYYY-MM-DD), so it can't slip past `rules_since`, unless
+  `stories.legacy` lists it (implemented before the rules, left as it is);
 - `plan` and `scenarios` paths exist; an in-progress story has its plan,
   and a story implemented since `rules_since` has its plan and scenarios
   (technical stories need no scenarios);
@@ -25,6 +27,7 @@ from .markdown import parse_frontmatter, section
 from .scenarios import Citation, scenario_names
 
 _CRITERION_LINE = re.compile(r"^(\d+)\.\s+(.*)$", re.MULTILINE)
+_ISO_DATE = re.compile(r"\d{4}-\d{2}-\d{2}")
 _DELTA_LINE = re.compile(r"^\s*[-*]\s+(?P<op>[+~\-−])\s+`?(?P<feature>[^`:\s]+\.feature)`?\s*:\s*(?P<scenario>.+?)\s*$", re.MULTILINE)
 SUPERSEDED_START = "<!-- sanchin:superseded-by:start -->"
 SUPERSEDED_END = "<!-- sanchin:superseded-by:end -->"
@@ -55,8 +58,21 @@ def check_stories(config: Config, stories: list[Story], citations: list[Citation
     errors = []
     for story in stories:
         errors.extend(f"{story.path}: {problem}" for problem in _story_problems(config, story))
+    errors.extend(_duplicate_id_problems(config, stories))
     errors.extend(_citation_problems(config, stories, citations))
     return errors
+
+
+def _duplicate_id_problems(config: Config, stories: list[Story]) -> list[str]:
+    by_id: dict[str, list[Story]] = {}
+    for story in stories:
+        if story.get(config.stories.id_key):
+            by_id.setdefault(story.get(config.stories.id_key), []).append(story)
+    return [
+        f"{same[0].path}: id {story_id} is also used by {', '.join(str(other.path) for other in same[1:])}"
+        for story_id, same in sorted(by_id.items())
+        if len(same) > 1
+    ]
 
 
 def criteria(config: Config, story: Story) -> dict[int, str]:
@@ -91,6 +107,20 @@ def _relative(config: Config, path: Path) -> str:
     return Path(os.path.relpath(path.resolve(), base.resolve())).as_posix()
 
 
+def is_legacy(config: Config, story: Story) -> bool:
+    """Listed in `stories.legacy`: implemented before the rules, left as it is."""
+    return story.path.relative_to(config.project_root).as_posix() in config.stories.legacy
+
+
+def implemented_under_rules(config: Config, story: Story) -> bool:
+    keys = config.stories
+    return (
+        story.get(keys.state_key) == keys.states["implemented"]
+        and not is_legacy(config, story)
+        and (story.get(keys.date_key) or "") >= keys.rules_since
+    )
+
+
 def _story_problems(config: Config, story: Story) -> list[str]:
     keys = config.stories
     states = keys.states
@@ -100,8 +130,11 @@ def _story_problems(config: Config, story: Story) -> list[str]:
     state = story.get(keys.state_key)
     if state not in states.values():
         problems.append(f"{keys.state_key} {state!r} is not one of {sorted(states.values())}")
+    legacy = is_legacy(config, story)
+    if state == states["implemented"] and not legacy and not _ISO_DATE.fullmatch(story.get(keys.date_key) or ""):
+        problems.append(f"a story {state!r} needs its {keys.date_key!r} as YYYY-MM-DD (or list it in stories.legacy)")
     problems.extend(_path_problems(config, story))
-    under_rules = state == states["implemented"] and (story.get(keys.date_key) or "") >= keys.rules_since
+    under_rules = implemented_under_rules(config, story)
     if (state == states["in_progress"] or under_rules) and not story.get(keys.plan_key):
         problems.append(f"a story {state!r} needs its {keys.plan_key!r}")
     if under_rules and not story.get(keys.scenarios_key) and story.get(keys.kind_key) != keys.technical_kind:
@@ -165,7 +198,7 @@ def _citation_problems(config: Config, stories: list[Story], citations: list[Cit
             problems.append(f"{citation.feature}: cites criterion {citation.criterion} of {citation.story_id}, which does not exist")
     cited = {(citation.story_id, citation.criterion) for citation in citations}
     for story in stories:
-        if story.get(keys.state_key) != keys.states["implemented"] or (story.get(keys.date_key) or "") < keys.rules_since:
+        if not implemented_under_rules(config, story):
             continue
         if not story.get(keys.scenarios_key):
             continue

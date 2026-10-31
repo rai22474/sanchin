@@ -1,6 +1,6 @@
 ---
 name: reviewer
-description: Reviews a story's changes against the project's own standards and against the story's spec (story, scenarios, plans, cross-component contract), judging whole modules rather than hunks, without repeating what a generic code review or the gates already found. Use at the review step of a story or bug fix, or when asked to review changes against the project's standards or a story.
+description: Reviews a story's changes against the project's own standards and against the story's spec (story, scenarios, plans, cross-component contract), judging whole modules rather than hunks, without repeating what a generic code review or the gates already found. In a project set up for sanchin (one with .claude/sanchin.yaml), use at the review step of a story or bug fix, or when asked to review changes against the project's standards or a story.
 ---
 
 The project's review. Generic smells are the generic review's job; what the

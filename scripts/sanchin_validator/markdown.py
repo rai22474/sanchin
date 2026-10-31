@@ -8,10 +8,21 @@ EXTERNAL_PREFIXES = ("http://", "https://", "mailto:", "#")
 _FENCE_PATTERN = re.compile(r"^(```|~~~).*?^\1", re.MULTILINE | re.DOTALL)
 _CODE_SPAN_PATTERN = re.compile(r"`[^`\n]*`")
 _FRONTMATTER_KEY = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
+_TRAILING_COMMENT = re.compile(r"\s+#.*$")
+
+
+def normalize_newlines(text: str) -> str:
+    return text.replace("\r\n", "\n")
 
 
 def parse_frontmatter(text: str) -> tuple[dict[str, str] | None, list[str]]:
-    """Flat `key: value` frontmatter, the shape every sanchin artifact uses."""
+    """Flat `key: value` frontmatter, the shape every sanchin artifact uses.
+
+    As in YAML, a ` # comment` after a value is ignored (a `#` with no space
+    before it, like a link anchor, is kept), and blank or comment-only lines
+    are skipped.
+    """
+    text = normalize_newlines(text)
     if not text.startswith("---\n"):
         return None, ["missing frontmatter"]
     end = text.find("\n---\n", 3)
@@ -20,8 +31,11 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str] | None, list[str]]:
     fields: dict[str, str] = {}
     errors = []
     for line in text[4:end].split("\n"):
+        if not line.strip() or line.lstrip().startswith("#"):
+            continue
         key, separator, value = line.partition(":")
         key = key.strip()
+        value = _TRAILING_COMMENT.sub("", value)
         if not separator or not _FRONTMATTER_KEY.fullmatch(key) or not value.strip():
             errors.append(f"malformed frontmatter line {line!r}")
             continue
@@ -32,6 +46,7 @@ def parse_frontmatter(text: str) -> tuple[dict[str, str] | None, list[str]]:
 
 
 def strip_frontmatter(text: str) -> str:
+    text = normalize_newlines(text)
     if not text.startswith("---\n"):
         return text
     closing = text.find("\n---\n", 4)

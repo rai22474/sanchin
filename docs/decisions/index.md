@@ -13,7 +13,7 @@ record that supersedes it, never by editing it.
 | [0003](0003-immutable-incremental-stories.md) | Stories are immutable and incremental |
 | [0004](0004-story-core-optional-layers.md) | The story is the core; epics, narratives and milestones are layers |
 | [0005](0005-story-order.md) | Functional grill first, red once, cross-check before code |
-| [0006](0006-plans-worktrees-merge.md) | One plan per component, one worktree per story, local merge |
+| [0006](0006-plans-worktrees-merge.md) | One plan per component, one worktree per story, local merge (or a pull request) |
 | [0007](0007-validator.md) | A validator with built-in rules and configurable values |
 | [0008](0008-deterministic-gates.md) | Deterministic gates at four levels |
 | [0009](0009-progressive-context.md) | Progressive context: format, not layout |

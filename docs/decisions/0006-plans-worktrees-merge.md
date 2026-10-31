@@ -16,3 +16,11 @@ approval — no pull request required.
 A contract written twice diverges. Parallel sessions on one working tree
 mix their changes into each other's commits. A pull request is optional
 ceremony for a single maintainer; the reviews already happened.
+
+## Revision — 2026-10-31: pull requests as an option
+
+The local merge stays the default, and the adapter's `merge: pr` replaces
+it with a pull request: push the branch, open the request with the story,
+plans and review findings, check CI, and leave the merge to the team.
+*Why:* a team with a protected `main`, or with reviewers of its own, can't
+take a local merge; the decision held for one maintainer and now says so.

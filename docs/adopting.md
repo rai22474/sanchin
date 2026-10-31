@@ -28,7 +28,9 @@ names (`historia`, `estado: en curso`, `Criterios de aceptación`).
 
 Set `stories.rules_since` and `plans.rules_since` to the day you adopt.
 Stories implemented before it, and plans listed in `plans.legacy`, are
-left alone. *Why:* rewriting history to satisfy a new rule produces fake
+left alone. An implemented story needs its date to be placed before or
+after the cut-off; old stories without one go in `stories.legacy` instead
+of getting a date added. *Why:* rewriting history to satisfy a new rule produces fake
 records; the rules apply from the day they exist.
 
 Run `scripts/sanchin check`. On a healthy project the first run reports
