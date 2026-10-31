@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Run sanchin's validator with a Python that has PyYAML.
+# Usage: scripts/sanchin [--project DIR] check|superseded|gates|hook ...
+# Prefers uv (no install needed); falls back to a python3 that already has PyYAML.
+set -euo pipefail
+
+script_dir=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+export PYTHONPATH="$script_dir${PYTHONPATH:+:$PYTHONPATH}"
+
+if command -v uv >/dev/null 2>&1; then
+  exec uv run --quiet --no-project --with pyyaml python3 -m sanchin_validator "$@"
+fi
+exec python3 -m sanchin_validator "$@"

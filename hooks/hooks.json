@@ -1,0 +1,17 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"${CLAUDE_PLUGIN_ROOT}\"/scripts/sanchin --project \"${CLAUDE_PROJECT_DIR}\" hook",
+            "statusMessage": "sanchin: checking the edited file...",
+            "timeout": 180
+          }
+        ]
+      }
+    ]
+  }
+}

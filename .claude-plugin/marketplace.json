@@ -1,0 +1,15 @@
+{
+  "name": "sanchin",
+  "description": "sanchin: a reproducible, spec-first development process for Claude Code.",
+  "owner": {
+    "name": "rai22474",
+    "url": "https://github.com/rai22474"
+  },
+  "plugins": [
+    {
+      "name": "sanchin",
+      "source": "./",
+      "description": "A reproducible, spec-first development process for Claude Code."
+    }
+  ]
+}

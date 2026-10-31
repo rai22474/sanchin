@@ -1,0 +1,15 @@
+{
+  "name": "sanchin",
+  "displayName": "Sanchin",
+  "version": "0.1.0",
+  "description": "A reproducible, spec-first development process for Claude Code: executable specs, validated artifacts, deterministic gates and progressive context, run by seven role skills.",
+  "author": {
+    "name": "rai22474",
+    "url": "https://github.com/rai22474"
+  },
+  "homepage": "https://github.com/rai22474/sanchin",
+  "repository": "https://github.com/rai22474/sanchin",
+  "license": "MIT",
+  "keywords": ["process", "spec-driven", "bdd", "gherkin", "tdd", "adr", "workflow"],
+  "icon": "./assets/logo.svg"
+}

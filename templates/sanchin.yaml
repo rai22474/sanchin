@@ -1,0 +1,35 @@
+# Minimal adapter: stories, scenarios and plans, no optional layers.
+# Full reference: docs/adapter.md in the sanchin repository.
+version: 1
+language: en
+terms: {story: story}
+layers: []
+components: [app]
+base_docs:
+  mission_vision: docs/vision.md
+  stack: docs/stack.md
+  constitution: docs/architecture/index.md
+  glossary: docs/glossary.md
+  decisions: docs/architecture/decisions/
+  issues: docs/issues/
+  proposals: docs/proposals/
+docs:
+  root: docs
+  navigation_line: '^\[Docs\]\('
+  unindexed_catalogs: []
+  code_reference_globs: ['src/**/*']
+stories:
+  directory: docs/stories
+  glob: 'st-*.md'
+  rules_since: 'YYYY-MM-DD'
+scenarios:
+  globs: ['tests/features/**/*.feature']
+plans:
+  directory: docs/plans
+  rules_since: 'YYYY-MM-DD'
+  required_sections:
+    in_progress: [Current state, Design, Steps]
+    implemented: [Current state, Design, Steps, Implementation, Review]
+  constitution:
+    globs: [docs/architecture/smells/*.md]
+gates: []
