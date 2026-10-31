@@ -11,9 +11,8 @@ can tell.
 
 - **Fixed point** — the story branch's merge-base with `main`
   (`git merge-base main HEAD`) unless the user says otherwise.
-- **Generic review** — with `mattpocock-skills` installed, run
-  `/mattpocock-skills:code-review` over the same fixed point first; your
-  report is the delta over it. Without it, you are the only review.
+- **Generic review** — run `/mattpocock-skills:code-review` over the same
+  fixed point first; your report is the delta over it.
 - **The story** — its id; take it from the commits if not given; ask only
   if there are none or several.
 - **The adapter** — `.claude/sanchin.yaml`: components, where standards,

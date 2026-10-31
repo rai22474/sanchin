@@ -36,7 +36,7 @@ flowchart LR
 
 ## 1. Grill the idea into an epic
 
-`/mattpocock-skills:grilling` (or any grilling skill) on the raw idea.
+`/mattpocock-skills:grilling` on the raw idea.
 Dispatch research sub-agents for anything answerable from the repository
 (architecture, conventions, prior art) in parallel with asking the user the
 genuine judgement calls. Keep going until the frontier is empty and the
@@ -185,8 +185,8 @@ acceptance scenarios there, since they cross components.
 ### 3.7 Reviews
 
 Right after committing on the story's branch, `/sanchin:reviewer` over the
-diff from the branch point. With `mattpocock-skills` installed, its
-`/code-review` runs first as the generic outside view and the reviewer
+diff from the branch point. `/mattpocock-skills:code-review` runs first as
+the generic outside view and the reviewer
 reports only what that review didn't. Every finding is written into the
 plan's review section with its **source** label.
 

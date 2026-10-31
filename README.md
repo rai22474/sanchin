@@ -104,6 +104,10 @@ they are.
 /sanchin:init
 ```
 
+Installing sanchin also installs its one dependency,
+[mattpocock-skills](https://github.com/mattpocock/skills), whose grilling
+and code-review skills run the grills and the first review.
+
 `init` looks at what the repository already has — stories, feature files,
 plans, decision records, standards, git hooks, CI — and writes
 `.claude/sanchin.yaml` with the project's own names and paths. In a new
@@ -155,6 +159,7 @@ into a repository that already has its own process.
 | [0015](docs/decisions/0015-continuous-improvement.md) | Retro per story, rule of two, eval-driven skill changes | Skills drift like code unless tested like code. |
 | [0016](docs/decisions/0016-general-whys.md) | Every rule carries a general why | Anecdotes are matched by shape; reasons generalize. |
 | [0017](docs/decisions/0017-english.md) | sanchin in English, projects in their own language | Widest common language for the plugin; each team keeps its words. |
+| [0018](docs/decisions/0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review | A step that runs only if a plugin happens to be installed isn't reproducible. |
 
 ## How it compares
 

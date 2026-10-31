@@ -10,6 +10,20 @@
   "homepage": "https://github.com/rai22474/sanchin",
   "repository": "https://github.com/rai22474/sanchin",
   "license": "MIT",
-  "keywords": ["process", "spec-driven", "bdd", "gherkin", "tdd", "adr", "workflow"],
-  "icon": "./assets/logo.svg"
+  "keywords": [
+    "process",
+    "spec-driven",
+    "bdd",
+    "gherkin",
+    "tdd",
+    "adr",
+    "workflow"
+  ],
+  "icon": "./assets/logo.svg",
+  "dependencies": [
+    {
+      "name": "mattpocock-skills",
+      "marketplace": "claude-plugins-official"
+    }
+  ]
 }

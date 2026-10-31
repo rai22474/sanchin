@@ -21,4 +21,5 @@ First version, extracted from the process of a real multi-service project.
 - PostToolUse hook: doc rules on edited docs and the adapter's edit-level gates.
 - Templates for story, plan, issue, epic, narrative and a minimal adapter.
 - Eval cases for the critical skill rules.
-- Seventeen decision records.
+- Plugin dependency on `mattpocock-skills` for the grills and the generic review.
+- Eighteen decision records.

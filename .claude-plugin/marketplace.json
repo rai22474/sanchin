@@ -5,6 +5,9 @@
     "name": "rai22474",
     "url": "https://github.com/rai22474"
   },
+  "allowCrossMarketplaceDependenciesOn": [
+    "claude-plugins-official"
+  ],
   "plugins": [
     {
       "name": "sanchin",

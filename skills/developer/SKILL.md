@@ -20,5 +20,5 @@ What to build is `/sanchin:product-owner`'s question and whether it fits is
    `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check` before each hand-off; its
    failures are gate failures — diagnose before patching.
 
-Lean on a grilling skill for the grills and on `/sanchin:reviewer` for the
+Use `/mattpocock-skills:grilling` for the grills and `/sanchin:reviewer` for the
 review step, exactly where the process says.

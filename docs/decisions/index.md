@@ -25,3 +25,4 @@ record that supersedes it, never by editing it.
 | [0015](0015-continuous-improvement.md) | Retro per story, rule of two, eval-driven skill changes |
 | [0016](0016-general-whys.md) | Every rule carries a general why, never an anecdote |
 | [0017](0017-english.md) | sanchin is written in English |
+| [0018](0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review |
