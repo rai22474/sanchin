@@ -31,9 +31,13 @@ it is `/sanchin:developer`'s.
 5. Use `/mattpocock-skills:grilling` for the technical grill, and the
    reviewer's spec brief (`${CLAUDE_PLUGIN_ROOT}/skills/reviewer/SKILL.md`,
    minus the code) for the cross-check sub-agent.
-6. Before handing over, run `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check`;
+6. Check the story is still *achievable* and *time-bound* with the code in
+   view: plans whose steps don't fit `stories.increment`, or a design the
+   decisions in force don't allow, go back — to the product owner with the
+   split the plans suggest, or to the architect.
+7. Before handing over, run `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check`;
    its failures are gate failures — diagnose before patching.
-7. End with the planning retro written in the plan and the story planned:
+8. End with the planning retro written in the plan and the story planned:
    say which plans you wrote and that `/sanchin:developer` takes it next.
    Don't write code.
 

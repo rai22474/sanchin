@@ -22,7 +22,7 @@ First version, extracted from the process of a real multi-service project.
 - Templates for story, plan, issue, epic, narrative and a minimal adapter.
 - Eval cases for the critical skill rules.
 - Plugin dependency on `mattpocock-skills` for the grills and the generic review.
-- Nineteen decision records.
+- Twenty decision records.
 
 ### Changed before release: four cycles, one role each
 
@@ -41,6 +41,10 @@ First version, extracted from the process of a real multi-service project.
   `sanchin roadmap [--write]` generates and checks each milestone's stories
   table and state.
 - Escalated bugs go to the product owner as pending stories.
+- Stories are short increments and SMART ([0020](docs/decisions/0020-short-increments-smart-stories.md)):
+  each letter has a test, the product owner checks all five before ready,
+  the tech-lead re-checks achievable and time-bound against the plans;
+  `stories.increment` sets the increment's length.
 
 ### Fixed before release
 

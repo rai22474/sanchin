@@ -18,11 +18,16 @@ build a ready story is `/sanchin:tech-lead`'s, building it is
    holds none of its own. *Why:* principles copied into a skill go stale,
    and the work drifts from the product.
 3. Use `/mattpocock-skills:grilling` for every grill, at every level.
-4. Before handing a story over, run
+4. Hold every story to SMART and to the project's increment
+   (`stories.increment`) during its grill — the table in the process's
+   *1.3* — and don't set it ready until each letter holds. A story too big
+   for the increment is split into stories that each still work on their
+   own, never into technical layers.
+5. Before handing a story over, run
    `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin roadmap --write` and
    `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check`; their failures are gate
    failures — diagnose before patching.
-5. End when the stories you worked on are ready and placed, each with its
+6. End when the stories you worked on are ready and placed, each with its
    Retro section written: say which, and that `/sanchin:tech-lead` takes
    them next. Don't plan or build them.
 

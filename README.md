@@ -292,6 +292,7 @@ in [docs/decisions/](docs/decisions/index.md).
 | [0017](docs/decisions/0017-english.md) | sanchin in English, projects in their own language | Widest common language for the plugin; each team keeps its words. |
 | [0018](docs/decisions/0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review | A step that runs only if a plugin happens to be installed isn't reproducible. |
 | [0019](docs/decisions/0019-roles-per-cycle.md) | Four cycles, one role each, five story states | Each hand-off is a decision with an owner; the state says whose turn it is. |
+| [0020](docs/decisions/0020-short-increments-smart-stories.md) | Short increments, SMART stories | Every check — grill, scenario, review, context — works on a small change and degrades on a big one. |
 
 </details>
 

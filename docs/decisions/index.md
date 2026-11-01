@@ -27,3 +27,4 @@ record that supersedes it, never by editing it.
 | [0017](0017-english.md) | sanchin is written in English |
 | [0018](0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review |
 | [0019](0019-roles-per-cycle.md) | Four cycles, one role each, and five story states |
+| [0020](0020-short-increments-smart-stories.md) | Short increments, SMART stories |

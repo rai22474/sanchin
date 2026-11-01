@@ -9,6 +9,10 @@ milestone: <milestone file name, without .md — with the milestone layer>
 
 As a <user>, I want <capability>, so that <value>.
 
+<!-- SMART before it goes ready: one behaviour for one user (S); every criterion
+     an observable outcome a scenario can pass or fail (M); buildable now, no doubt
+     left (A); the "so that" serves its narrative (R); fits one increment (T). -->
+
 ## Acceptance criteria
 
 1. <observable behaviour> [DOUBT: <what isn't clear yet>]

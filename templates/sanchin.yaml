@@ -23,6 +23,7 @@ stories:
   glob: 'st-*.md'
   states: {pending: pending, ready: ready, planned: planned, in_progress: in progress, implemented: implemented}
   rules_since: 'YYYY-MM-DD'
+  increment: 2 days   # a story fits this, from ready to merged
 scenarios:
   globs: ['tests/features/**/*.feature']
   pending_tag: '@pending'   # the runner must skip it

@@ -63,6 +63,7 @@ stories:
   delta_heading: Scenario delta
   rules_since: '2026-11-01'
   legacy: []                   # implemented stories that predate the rules
+  increment: 2 days            # how long a story may take from ready to merged (SMART: time-bound)
 
 scenarios:
   globs: ['{component}/tests/features/**/*.feature']
@@ -108,7 +109,7 @@ gates:
 | `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process.md](process.md#35-close-retro-and-merge)). |
 | `base_docs.*` | skills | Where the four base documents, decisions, issues, proposals and templates live. |
 | `docs.*` | validator | Progressive-context rules ([context.md](context.md)). |
-| `stories.*` | validator, skills | Story rules ([artifacts.md](artifacts.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. |
+| `stories.*` | validator, skills | Story rules ([artifacts.md](artifacts.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process.md](process.md#13-stories-from-a-narrative)). |
 | `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process.md](process.md#states)). Values must differ. |
 | `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. |
 | `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts.md](artifacts.md#roadmap)). |

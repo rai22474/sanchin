@@ -126,6 +126,59 @@ that can't ship alone can't be verified alone either.
 Grill the narrative into stories — behaviour only: what the user sees,
 edge cases, what counts as done; never the "how".
 
+**Short increments.** A story is the smallest change that gives the user
+something they can see working, and it goes from ready to merged in one
+short increment — the length the project sets in its adapter
+(`stories.increment`, e.g. `2 days`). A story that doesn't fit is split
+into stories that each still work on their own, never into technical
+layers. *Why:*
+
+- **The agent writes faster than anyone can check.** With an agent,
+  writing the code stops being the bottleneck; verifying it — the tests,
+  the review, the user seeing it work — is what's left. An agent's mistakes
+  are plausible and compound: the code compiles, the tests it wrote pass,
+  and each step builds on the last, so a misunderstanding early is carried
+  through everything after it. A short increment bounds how much gets built
+  on a wrong turn before a red scenario or the user's eyes catch it.
+- **Red and green are the agent's own feedback.** A scenario that fails for
+  the right reason, then passes, tells the agent it is on track without
+  asking anyone — but only when it pins one behaviour. With many at once,
+  the agent "fixes" what fails by touching what shouldn't change.
+- **The user's feedback is the check the agent doesn't have.** The agent
+  knows whether the code meets what was written, not whether it is what was
+  wanted. Seeing the behaviour work days after asking for it, not weeks,
+  corrects the "what" before more is built on top of it.
+- **It fits one agent's context.** A story whose story, plans, code and
+  tests fit in one session is built from what was decided; a larger one is
+  built from summaries of it, and the agent fills the gaps by inventing.
+- **Every check works better on a small change.** The grills cover every
+  case, the review reads every module the change grows in full, and the
+  cross-check holds the whole story in mind. A large change is skimmed, and
+  skimmed is where defects pass.
+- **Less is in flight at once.** Fewer half-done branches, fewer merge
+  conflicts, less work lost when priorities change — and a failure points
+  at a handful of lines.
+- **The roadmap tells the truth.** A milestone made of small stories shows
+  its progress story by story; one made of large ones reads "in progress"
+  until the end.
+
+**SMART.** Every story is checked against SMART while it is grilled, and
+the product owner doesn't set it ready until each letter holds:
+
+| | The story is… | The test | If not |
+|---|---|---|---|
+| **S** | **Specific** | One behaviour, for one kind of user. Each criterion names an observable outcome — what the user sees or gets — not an intention ("better", "easier", "supports"). | Split it; rewrite vague criteria as outcomes. |
+| **M** | **Measurable** | Each criterion can be checked as pass or fail by a scenario, or says why not (`(no scenario: …)`). "Done" is the scenarios passing — nothing left to opinion. | Rewrite the criterion until a scenario can decide it. |
+| **A** | **Achievable** | Buildable with what exists and the decisions in force; no doubt marker left; no dependency on a story that isn't done or planned before it. | Mark the doubt; order the dependency first in the roadmap; a needed architecture change goes to the architect. |
+| **R** | **Relevant** | Its *so that* names a value the user gets, and it serves its narrative — and through it, its epic and the mission. | Drop it, or find the narrative it really serves. |
+| **T** | **Time-bound** | Fits one short increment (`stories.increment`) from ready to merged. | Split it into stories that each still work on their own. |
+
+The tech-lead checks **A** and **T** again with the code in view: a plan
+whose steps don't fit the increment, or that can't be built under the
+decisions in force, goes back — to the product owner to split the story, or
+to the architect. *Why:* the product owner sizes a story from the "what";
+only the "how" shows its real size.
+
 - **A story states only the "what"**: who wants what, and a numbered list
   of acceptance criteria. *Why:* a spec that describes code goes stale with
   the next refactor; the current state of the code goes in the plan.
@@ -205,6 +258,11 @@ steps. The story links its plans.
 - A plan is the record of one change: it is never updated after its story
   is implemented. *Why:* the current state is the code and its tests; a
   plan kept "up to date" becomes a second, drifting description.
+- **Size it against the increment.** If the plans' steps don't fit one
+  short increment (`stories.increment`), the story isn't *time-bound*: it
+  goes back to the product owner to be split, with the split the plans
+  suggest. *Why:* only the "how" shows a story's real size, and a story
+  that outgrows its increment loses every benefit of being small.
 - A design that contradicts a decision record in force, or needs a new
   one, stops here and goes to `/sanchin:architect`. *Why:* a story plan is
   the wrong place to change the architecture — its scope is one story.
