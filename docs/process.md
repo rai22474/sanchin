@@ -83,6 +83,12 @@ story is planned again, the developer rebases onto `main` and goes on.
 *Why:* a question answered by the wrong role is a decision taken without its
 owner.
 
+Nothing a role decides lives only in the chat: it is written in the wiki —
+story, scenarios, plan, decision record, issue — in the same commit as the
+work, once the user confirms it ([context.md](context.md)). *Why:* the next
+session and the next role start knowing nothing; they can only build on
+what they can read.
+
 Every cycle ends with a short **retro** where its artifact lives — the
 story, the plan, the decision record, the issue — in the five fields of
 [improvement.md](improvement.md#the-retro). *Why:* the coach can only

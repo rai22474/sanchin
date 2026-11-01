@@ -6,12 +6,12 @@ Everything sanchin does, one document per reader.
 
 | Document | What it contains | When to read it |
 |---|---|---|
-| [process.md](process.md) | The loop from idea to merged code, the bug lane, pacing, git and approval rules — each with its why. | Before running a story or a bug fix; the developer and maintainer skills follow it. |
-| [artifacts.md](artifacts.md) | The project base documents, and the format and rules of stories, scenarios, plans, optional layers and issues. | When writing or reviewing a story, a plan or a feature file. |
+| [process.md](process.md) | The four cycles — product, planning, delivery, architecture — the story states, short SMART increments, the bug lane, pacing, git and approval rules, each with its why. | Before running any role; every role skill follows its cycle here. |
+| [artifacts.md](artifacts.md) | The project base documents, and the format and rules of stories, scenarios, plans, optional layers, the roadmap and issues. | When writing or reviewing a story, a plan, a milestone or a feature file. |
 | [adapter.md](adapter.md) | Every field of `.claude/sanchin.yaml`, with a full example. | When setting up a project, or when the validator reads a value you didn't expect. |
 | [validator.md](validator.md) | The validator's commands, each rule it enforces, and how to run it in hooks and CI. | When wiring sanchin into a pipeline, or when a check fails and it isn't clear why. |
 | [gates.md](gates.md) | The four gate levels, their rules, and how a project declares its own gates. | When adding a check, or deciding where it should run. |
-| [context.md](context.md) | Progressive disclosure: thin entry points, navigation and catalog indexes, navigation lines. | When creating or moving a document, or writing an index. |
+| [context.md](context.md) | The wiki as the project's memory — what is written where, and by whom — and progressive disclosure: thin entry points, navigation and catalog indexes, navigation lines. | When deciding where a decision should be recorded, creating or moving a document, or writing an index. |
 | [improvement.md](improvement.md) | Signals, the retro, the rule of two, eval-driven skill changes, the coach. | When closing a story, or when a rule keeps being broken. |
 | [adopting.md](adopting.md) | Bringing sanchin into a project that already has docs and checks. | Before running `/sanchin:init` on an existing repository. |
 | [decisions/](decisions/index.md) | sanchin's own decision records. | When you wonder why sanchin works the way it does. |

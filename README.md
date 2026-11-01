@@ -5,7 +5,7 @@
 <h1 align="center">sanchin</h1>
 
 <p align="center"><b>A reproducible, spec-first development process for Claude Code.</b><br>
-Executable specs · validated artifacts · deterministic gates · progressive context.</p>◊
+Executable specs · validated artifacts · deterministic gates · a wiki as memory, disclosed progressively.</p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
@@ -49,7 +49,9 @@ project went into an **adapter**; what is left is the process.
 - [Quickstart](#quickstart)
 - [How it works](#how-it-works)
   - [The four pillars](#the-four-pillars)
+  - [The wiki: the project's memory](#the-wiki-the-projects-memory)
   - [The process](#the-process)
+  - [Short, SMART increments](#short-smart-increments)
   - [Roles](#roles)
 - [Configuration](#configuration)
 - [Validator and gates](#validator-and-gates)
@@ -156,14 +158,56 @@ its own process, see [docs/adopting.md](docs/adopting.md).
 3. **Deterministic gates.** What can be checked by code is checked by code,
    at the earliest level where it is cheap — from the moment Claude saves a
    file to CI.
-4. **Progressive context.** Thin entry points and indexes that say *what*
-   each document holds and *when* to read it, so an agent loads the ten
-   documents its task needs instead of all two hundred.
+4. **A wiki as memory, disclosed progressively.** Everything the project
+   decided lives in its docs — not in a chat, not in an agent's memory —
+   and thin entry points and indexes that say *what* each document holds
+   and *when* to read it let an agent load the ten documents its task needs
+   instead of all two hundred.
 
 And one principle that ties them together: **specs are immutable and
 incremental.** An implemented story is never edited; a change is a new
 story with a *supersedes* line and a scenario delta (+ / ~ / −), and the
 current behaviour is whatever the scenarios — kept true by the tests — say.
+
+### The wiki: the project's memory
+
+An agent starts every session knowing nothing about the project. Its chat
+is gone when the session ends; its private memory isn't seen by the next
+session, by a sub-agent, or by a teammate. So in sanchin the project's
+memory is its **wiki** — the docs in the repository — and every role writes
+what it decided there, in the same commit as the work:
+
+| What was decided | Where it is remembered |
+|---|---|
+| Why the product exists, what it is for | mission and vision |
+| What to build, and in which order | epics, narratives, stories, the roadmap's milestones |
+| How the system behaves today | the feature files — executable, kept true by the tests |
+| How one story was built, and why | its plans: design, decisions, deviations, review findings |
+| How the architecture is, and why it changed | decision records and the constitution |
+| What went wrong, and what the process learned | issues and the retros of every cycle |
+
+A conclusion left in a chat is lost to the next session, so the role skills
+offer to record every decision and write it once the user confirms. The
+wiki is versioned with the code, reviewed with it, and checked by the
+validator: links resolve, `file:line` citations are current, every page is
+reachable from an index.
+
+**Progressive disclosure** is how an agent finds the right part of that
+memory without reading all of it. Every entry point stays thin and points
+down; every index says what each document holds and *when* to read it;
+every page links back up:
+
+```text
+CLAUDE.md                     points to docs/index.md — never copies a rule
+└─ docs/index.md              what each area holds, and when to read it
+   └─ architecture/index.md   one line per standard: what it says, when it applies
+      └─ smells/god-module.md ← the one page the task needs
+         [Docs](../../index.md) · [Architecture](../index.md)   ← the way back up
+```
+
+An agent loads the ten documents its task needs, not all two hundred — so
+what it reads is what was decided, not a summary of it.
+See [docs/context.md](docs/context.md).
 
 ### The process
 
@@ -185,6 +229,30 @@ Four cycles, one role each; a role finishes, leaves its artifacts
 validated, and stops. A story's state says whose turn it is: **pending** →
 **ready** (product owner) → **planned** (tech-lead) → **in progress** →
 **implemented** (developer).
+
+### Short, SMART increments
+
+A story is the smallest change the user can see working, and it goes from
+ready to merged in one short increment (`stories.increment`, e.g. 2 days).
+With an agent, writing code stops being the bottleneck — verifying it is
+what's left — and an agent's mistakes are plausible and compound. A short
+increment bounds how much gets built on a wrong turn before a red scenario
+or the user's eyes catch it, and keeps the whole story inside one session's
+context.
+
+Every story is **SMART** before it goes ready, one test per letter:
+
+| | |
+|---|---|
+| **S**pecific | One behaviour for one kind of user; each criterion an observable outcome. |
+| **M**easurable | Each criterion passes or fails by a scenario. |
+| **A**chievable | Buildable now under the decisions in force; no doubt left. |
+| **R**elevant | Its *so that* serves its narrative, and through it the mission. |
+| **T**ime-bound | Fits the increment — or it is split into stories that each work alone. |
+
+The product owner checks all five; the tech-lead re-checks *achievable* and
+*time-bound* against the plans and sends back a story that doesn't fit
+([process.md](docs/process.md#13-stories-from-a-narrative)).
 
 Each step carries a *why* in [docs/process.md](docs/process.md) — the general
 reason behind it, never the anecdote that produced it, so it applies to
@@ -230,8 +298,10 @@ gates:
 ```bash
 scripts/sanchin check                    # every rule
 scripts/sanchin check --only docs        # docs | stories | plans (repeatable)
+scripts/sanchin roadmap [--write]        # check / regenerate the milestone tables
 scripts/sanchin superseded [--write]     # print / rewrite the superseded-by table
 scripts/sanchin gates --level pre-push FILE…   # run the project's gates of one level
+scripts/sanchin git-hook pre-commit|pre-push   # the body of a git hook
 scripts/sanchin trust                    # approve the adapter's gates for the hook
 ```
 
@@ -254,7 +324,7 @@ experience on a real project pointed elsewhere.
 | Principles | Constitution + plan gates | Free-form `context` in `config.yaml` | Constitution checklist in every plan, exceptions tied to decisions; mission, vision, stack and glossary as separate documents |
 | Consistency across artifacts | `/analyze` | `/opsx:verify` | Cross-check before code, and a spec review after it |
 | Verification | Checklists | `validate` | Validator + four gate levels + scenarios red before green |
-| Context for the agent | Templates | Project context | Progressive disclosure: indexes with *what* and *when*, checked |
+| Context for the agent | Templates | Project context | The wiki as the project's memory, disclosed progressively: indexes with *what* and *when*, checked |
 | Improving the process | Extensions, presets | Schemas | Retro per story, rule of two, **eval-tested skills**, a coach |
 | Bugs | Bug extension | — | Short lane with an escalation rule |
 
@@ -269,7 +339,7 @@ sanchin records its own decisions the way it asks projects to. Full records
 in [docs/decisions/](docs/decisions/index.md).
 
 <details>
-<summary>All 18 decisions, with their one-line why</summary>
+<summary>All 21 decisions, with their one-line why</summary>
 
 | | Decision | Why |
 |---|---|---|
@@ -292,7 +362,8 @@ in [docs/decisions/](docs/decisions/index.md).
 | [0017](docs/decisions/0017-english.md) | sanchin in English, projects in their own language | Widest common language for the plugin; each team keeps its words. |
 | [0018](docs/decisions/0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review | A step that runs only if a plugin happens to be installed isn't reproducible. |
 | [0019](docs/decisions/0019-roles-per-cycle.md) | Four cycles, one role each, five story states | Each hand-off is a decision with an owner; the state says whose turn it is. |
-| [0020](docs/decisions/0020-short-increments-smart-stories.md) | Short increments, SMART stories | Every check — grill, scenario, review, context — works on a small change and degrades on a big one. |
+| [0020](docs/decisions/0020-short-increments-smart-stories.md) | Short increments, SMART stories | An agent writes faster than anyone can check; a short increment bounds what is built on a wrong turn. |
+| [0021](docs/decisions/0021-wiki-as-memory.md) | The wiki is the project's memory | Sessions start cold and chats are lost; what isn't written in the repository isn't remembered. |
 
 </details>
 
@@ -304,12 +375,12 @@ Read [process.md](docs/process.md) → [artifacts.md](docs/artifacts.md) →
 
 | Document | For |
 |---|---|
-| [process.md](docs/process.md) | The loop, the bug lane, pacing, git and approvals — what the skills follow. |
+| [process.md](docs/process.md) | The four cycles, story states, the bug lane, pacing, git and approvals — what the skills follow. |
 | [artifacts.md](docs/artifacts.md) | Base documents, stories, scenarios, plans, layers, issues — format and rules. |
 | [adapter.md](docs/adapter.md) | Every field of `.claude/sanchin.yaml`. |
 | [validator.md](docs/validator.md) | Validator commands, rules, hooks and CI. |
 | [gates.md](docs/gates.md) | The four gate levels and how to declare a project's gates. |
-| [context.md](docs/context.md) | Progressive disclosure: entry points, indexes, navigation. |
+| [context.md](docs/context.md) | The wiki as the project's memory, and progressive disclosure: entry points, indexes, navigation. |
 | [improvement.md](docs/improvement.md) | Retros, the rule of two, evals, the coach, releases. |
 | [adopting.md](docs/adopting.md) | Bringing sanchin into an existing project. |
 | [decisions/](docs/decisions/index.md) | sanchin's own decision records. |

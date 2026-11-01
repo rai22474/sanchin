@@ -22,7 +22,7 @@ First version, extracted from the process of a real multi-service project.
 - Templates for story, plan, issue, epic, narrative and a minimal adapter.
 - Eval cases for the critical skill rules.
 - Plugin dependency on `mattpocock-skills` for the grills and the generic review.
-- Twenty decision records.
+- Twenty-one decision records.
 
 ### Changed before release: four cycles, one role each
 
@@ -45,6 +45,9 @@ First version, extracted from the process of a real multi-service project.
   each letter has a test, the product owner checks all five before ready,
   the tech-lead re-checks achievable and time-bound against the plans;
   `stories.increment` sets the increment's length.
+- The wiki is the project's memory ([0021](docs/decisions/0021-wiki-as-memory.md)):
+  every decision is written in the repository's docs by the role that took
+  it; progressive disclosure is how an agent finds the right part.
 
 ### Fixed before release
 
