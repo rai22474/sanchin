@@ -9,9 +9,11 @@ their artifacts and send back what doesn't hold.
 
 1. Read the project's adapter, `.claude/sanchin.yaml`. If there is none,
    stop and offer `/sanchin:init`.
-2. Read `${CLAUDE_PLUGIN_ROOT}/docs/process.md` — sections *Roles and
-   cycles*, *States* and *3. Delivery cycle*, plus pacing, costly runs, git
-   and boundaries — and follow it step by step. Use the project's terms,
+2. Read only these, and follow the cycle step by step:
+   `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
+   `process/delivery.md` and `process/working-rules.md`; and
+   `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/plan.md` and `artifacts/scenarios.md` for
+   what you read and close. Use the project's terms,
    paths and components from the adapter wherever the process names a role.
 3. Take only a **planned** story. One that is pending or ready has no closed
    design yet: say so and point to `/sanchin:product-owner` or

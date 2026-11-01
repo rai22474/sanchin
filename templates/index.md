@@ -4,7 +4,7 @@
 
 Starting points `/sanchin:init` copies into a project that has none,
 translated to the project's language and terms. Formats and rules:
-[artifacts.md](../docs/artifacts.md).
+[artifacts/index.md](../docs/artifacts/index.md).
 
 | Template | What it contains | When to use it |
 |---|---|---|

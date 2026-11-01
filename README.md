@@ -24,6 +24,29 @@ process itself; an architect turns technical ideas into decision records. A
 validator and deterministic gates check every hand-off, so the process holds
 whether or not the agent remembers it.
 
+### Specs that don't rot
+
+The first study of spec-driven development in practice — 21 practitioners
+and 266 active repositories — finds that specs which mix intent with
+implementation detail go stale, and that spec and code are checked against
+each other only when a change is finished, not as they evolve
+([Agarwal et al., 2026](https://arxiv.org/abs/2608.25202)). sanchin is built
+against exactly that:
+
+- **Intent and detail are kept apart.** A story says only the "what"; the
+  "how" lives in its plans, which are frozen when the story closes and never
+  maintained as a second description of the code.
+- **The current spec is executable.** How the system behaves today is its
+  feature files, which the tests run — not prose someone keeps true by hand.
+- **Spec and code are checked continuously.** The validator runs on every
+  file the agent saves, in git hooks and in CI: criteria traced to
+  scenarios, doubts that block, plans complete, closed records untouched.
+
+And it isn't waterfall in Markdown. Phases only feel heavy when what flows
+through them is big; in sanchin each story is a short, SMART increment —
+days from ready to merged — so the cycles turn over as fast as the work
+does.
+
 It grew inside a real multi-service project. Everything specific to that
 project went into an **adapter**; what is left is the process.
 
@@ -39,7 +62,7 @@ project went into an **adapter**; what is left is the process.
 | If you want to… | Read |
 |---|---|
 | Try it now | [Quickstart](#quickstart) |
-| Understand the process | [docs/process.md](docs/process.md), then [docs/artifacts.md](docs/artifacts.md) |
+| Understand the process | [docs/process/](docs/process/index.md), then [docs/artifacts/](docs/artifacts/index.md) |
 | Configure a project | [docs/adapter.md](docs/adapter.md) |
 | Bring it into an existing repo | [docs/adopting.md](docs/adopting.md) |
 | See everything | [docs/index.md](docs/index.md) · [Documentation](#documentation) |
@@ -206,7 +229,9 @@ CLAUDE.md                     points to docs/index.md — never copies a rule
 ```
 
 An agent loads the ten documents its task needs, not all two hundred — so
-what it reads is what was decided, not a summary of it.
+what it reads is what was decided, not a summary of it. sanchin holds
+itself to the same rule: its process is an index plus one document per
+cycle, and each role reads only its own.
 See [docs/context.md](docs/context.md).
 
 ### The process
@@ -252,9 +277,9 @@ Every story is **SMART** before it goes ready, one test per letter:
 
 The product owner checks all five; the tech-lead re-checks *achievable* and
 *time-bound* against the plans and sends back a story that doesn't fit
-([process.md](docs/process.md#13-stories-from-a-narrative)).
+([process/product.md](docs/process/product.md#13-stories-from-a-narrative)).
 
-Each step carries a *why* in [docs/process.md](docs/process.md) — the general
+Each step carries a *why* in [docs/process/](docs/process/index.md) — the general
 reason behind it, never the anecdote that produced it, so it applies to
 cases nobody has seen yet.
 
@@ -322,7 +347,7 @@ experience on a real project pointed elsewhere.
 | Changing behaviour | New spec | Delta (ADDED / MODIFIED / REMOVED) merged into the spec | New immutable story with *supersedes* + scenario delta, checked against the feature files |
 | Ambiguity | `[NEEDS CLARIFICATION]`, `/clarify` | `/opsx:explore` | Doubt markers, answered in a functional grill, **blocked by the validator** |
 | Principles | Constitution + plan gates | Free-form `context` in `config.yaml` | Constitution checklist in every plan, exceptions tied to decisions; mission, vision, stack and glossary as separate documents |
-| Consistency across artifacts | `/analyze` | `/opsx:verify` | Cross-check before code, and a spec review after it |
+| Consistency across artifacts | `/analyze` | `/opsx:verify` | Cross-check before code, a spec review after it, and the validator on every save |
 | Verification | Checklists | `validate` | Validator + four gate levels + scenarios red before green |
 | Context for the agent | Templates | Project context | The wiki as the project's memory, disclosed progressively: indexes with *what* and *when*, checked |
 | Improving the process | Extensions, presets | Schemas | Retro per story, rule of two, **eval-tested skills**, a coach |
@@ -370,13 +395,13 @@ in [docs/decisions/](docs/decisions/index.md).
 ## Documentation
 
 The full index lives in [docs/index.md](docs/index.md). New to sanchin?
-Read [process.md](docs/process.md) → [artifacts.md](docs/artifacts.md) →
+Read [process/](docs/process/index.md) → [artifacts/](docs/artifacts/index.md) →
 [adapter.md](docs/adapter.md) → [adopting.md](docs/adopting.md), in that order.
 
 | Document | For |
 |---|---|
-| [process.md](docs/process.md) | The four cycles, story states, the bug lane, pacing, git and approvals — what the skills follow. |
-| [artifacts.md](docs/artifacts.md) | Base documents, stories, scenarios, plans, layers, issues — format and rules. |
+| [process/](docs/process/index.md) | The four cycles, one document each, plus story states, the bug lane and working rules — each role reads only its own. |
+| [artifacts/](docs/artifacts/index.md) | Base documents, stories, scenarios, plans, layers and roadmap, issues — one document per format. |
 | [adapter.md](docs/adapter.md) | Every field of `.claude/sanchin.yaml`. |
 | [validator.md](docs/validator.md) | Validator commands, rules, hooks and CI. |
 | [gates.md](docs/gates.md) | The four gate levels and how to declare a project's gates. |

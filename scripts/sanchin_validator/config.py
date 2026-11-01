@@ -234,7 +234,7 @@ MILESTONE_STATES = ("planned", "in_progress", "closed")
 
 
 def _states(raw: dict) -> dict[str, str]:
-    """Story states in the order a story goes through them (process.md#states)."""
+    """Story states in the order a story goes through them (docs/process/states.md)."""
     return _named_values("stories.states", raw, STORY_STATES)
 
 

@@ -9,9 +9,10 @@ order the work: technical stories go to `/sanchin:product-owner`'s
 roadmap. Don't write code.
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and
-   offer `/sanchin:init`), and the architecture cycle in
-   `${CLAUDE_PLUGIN_ROOT}/docs/process.md` — sections *Roles and cycles*,
-   *States* and *4. Architecture cycle*.
+   offer `/sanchin:init`). Then read only these:
+   `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
+   `process/architecture.md` and `process/working-rules.md`; and
+   `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/story.md` before writing technical stories.
 2. Read the principles every time from the documents the adapter points to
    (`base_docs`): mission and vision (and the component's when the question
    is scoped to one), the decision records, the constitution and standards,

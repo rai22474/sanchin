@@ -11,7 +11,7 @@ First version, extracted from the process of a real multi-service project.
 
 - Seven role skills: `init`, `product-owner`, `architect`, `developer`,
   `maintainer`, `reviewer`, `coach`.
-- The process ([docs/process.md](docs/process.md)): story loop, bug lane,
+- The process ([docs/process.md](docs/process/index.md)): story loop, bug lane,
   pacing, costly runs, git and approvals.
 - Adapter format version 1 ([docs/adapter.md](docs/adapter.md)).
 - Validator: doc references, links, navigation and indexes; story
@@ -48,6 +48,15 @@ First version, extracted from the process of a real multi-service project.
 - The wiki is the project's memory ([0021](docs/decisions/0021-wiki-as-memory.md)):
   every decision is written in the repository's docs by the role that took
   it; progressive disclosure is how an agent finds the right part.
+- The process and the formats are directories — `docs/process/` (an index,
+  one document per cycle, states, bug lane, working rules) and
+  `docs/artifacts/` (one per format) — and each role skill reads only its
+  own; the 4,200-word `process.md` is gone.
+- Git is close to trunk-based: story branches stand in for a developer's
+  machine, live one increment, and merge into `main`; product and planning
+  artifacts go straight to `main`.
+- The README opens with "specs that don't rot", citing
+  [Agarwal et al., 2026](https://arxiv.org/abs/2608.25202).
 
 ### Fixed before release
 

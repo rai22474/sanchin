@@ -3,7 +3,7 @@
 [README](../README.md) · [Docs](index.md)
 
 `scripts/sanchin` checks a project's process artifacts against the rules in
-[artifacts.md](artifacts.md) and [context.md](context.md), with the values
+[artifacts/index.md](artifacts/index.md) and [context.md](context.md), with the values
 from the project's adapter. It is plain Python (standard library, PyYAML
 for the adapter and the official Gherkin parser, `gherkin-official`, for
 feature files in any Gherkin language); the wrapper runs it through `uv`,

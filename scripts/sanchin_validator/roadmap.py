@@ -13,7 +13,7 @@ decision, written in its state line, and checked:
   them are implemented;
 - the generated tables are up to date.
 
-Reference: docs/artifacts.md#roadmap.
+Reference: docs/artifacts/layers-and-roadmap.md#roadmap.
 """
 
 import os

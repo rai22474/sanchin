@@ -6,8 +6,8 @@ Everything sanchin does, one document per reader.
 
 | Document | What it contains | When to read it |
 |---|---|---|
-| [process.md](process.md) | The four cycles — product, planning, delivery, architecture — the story states, short SMART increments, the bug lane, pacing, git and approval rules, each with its why. | Before running any role; every role skill follows its cycle here. |
-| [artifacts.md](artifacts.md) | The project base documents, and the format and rules of stories, scenarios, plans, optional layers, the roadmap and issues. | When writing or reviewing a story, a plan, a milestone or a feature file. |
+| [process/](process/index.md) | The process: an index of the four cycles — product, planning, delivery, architecture — then one document per cycle, the story states, the bug lane and the working rules (trunk-based git, pacing, approvals). | Read its index first, then only the cycle you run; every role skill names the documents it reads. |
+| [artifacts/](artifacts/index.md) | The formats, one document each: base documents, story, scenarios, plan, layers and roadmap, issue — what each must contain and what the validator checks. | Only the format you are about to write or review. |
 | [adapter.md](adapter.md) | Every field of `.claude/sanchin.yaml`, with a full example. | When setting up a project, or when the validator reads a value you didn't expect. |
 | [validator.md](validator.md) | The validator's commands, each rule it enforces, and how to run it in hooks and CI. | When wiring sanchin into a pipeline, or when a check fails and it isn't clear why. |
 | [gates.md](gates.md) | The four gate levels, their rules, and how a project declares its own gates. | When adding a check, or deciding where it should run. |

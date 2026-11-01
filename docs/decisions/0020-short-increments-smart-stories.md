@@ -10,7 +10,7 @@ working, and it goes from ready to merged in one short increment, whose
 length the project sets in its adapter (`stories.increment`). Every story
 is SMART before it goes ready — specific, measurable, achievable, relevant,
 time-bound — each letter with a concrete test
-([process.md](../process.md#13-stories-from-a-narrative)). The product
+([process/product.md](../process/product.md#13-stories-from-a-narrative)). The product
 owner checks all five while grilling; the tech-lead re-checks *achievable*
 and *time-bound* against the plans, and sends back a story that doesn't fit.
 A story too big is split into stories that each still work on their own,

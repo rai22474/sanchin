@@ -64,7 +64,7 @@ worth the cost of a rule.
 A skill change follows the same loop as a story:
 
 1. add an eval case that fails without the change
-   ([evals/](../evals/), run with `evals/run.sh`);
+   ([evals/](../evals), run with `evals/run.sh`);
 2. change the skill;
 3. the new case passes and the existing ones still do.
 

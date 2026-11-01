@@ -12,7 +12,7 @@ rules and are skipped):
   of the allowed verdicts, and every exception
   (the last verdict in the list) names the plan decision that justifies it.
 
-Reference: docs/artifacts.md#plan.
+Reference: docs/artifacts/plan.md.
 """
 
 import re

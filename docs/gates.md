@@ -23,7 +23,7 @@ more it costs to find.
 
 - **Run the local gates before calling a change green.** *Why:* CI is the
   last net, not the first place a failure is seen.
-- **Diagnose before patching** a gate failure ([process.md](process.md#33-green)).
+- **Diagnose before patching** a gate failure ([process/delivery.md](process/delivery.md#33-green)).
 - **Reviewers skip what gates enforce**, and their brief says which gates
   exist. *Why:* a reviewer repeating a linter spends attention a linter
   doesn't need.

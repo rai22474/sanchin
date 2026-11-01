@@ -4,12 +4,12 @@ The baseline is the first commit where the story's state line reads
 implemented — the close commit, which also carries the plans' Review and
 Retro. Any later difference in the story or its plans, committed or not, is
 an edit of a closed record. A change of behaviour is a new story that
-supersedes it ([process.md](../../docs/process.md#13-stories-from-a-narrative)).
+supersedes it ([process/product.md](../../docs/process/product.md#13-stories-from-a-narrative)).
 
 Skipped without git, for stories in `stories.legacy`, and for a story whose
 implemented state isn't committed yet or whose baseline commit isn't in
 the history (a shallow clone).
-Reference: docs/artifacts.md#story.
+Reference: docs/artifacts/story.md.
 """
 
 import re

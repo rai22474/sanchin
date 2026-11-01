@@ -53,9 +53,16 @@ lives is the project's choice, mapped in the adapter.
 
 `CLAUDE.md`, skills and agent prompts point to indexes; they never copy
 rules. *Why:* a rule copied into an entry point is a second version of it,
-and the two drift apart. The skills in this plugin follow the same rule —
-each role skill reads its cycle in [process.md](process.md) instead of
-containing it.
+and the two drift apart.
+
+sanchin applies the rule to itself. Its process is not one long document
+but a directory — an index, then one document per cycle — and its formats
+likewise, one per artifact ([process/](process/index.md),
+[artifacts/](artifacts/index.md)). Each role skill names the few documents
+it reads — the index, the states, its own cycle, the working rules, the
+formats it writes — instead of containing them or loading all of them.
+*Why:* a role that loads the whole process spends its context on other
+roles' work, and is invited to do it.
 
 ## Navigation index
 

@@ -4,7 +4,7 @@
   its date (YYYY-MM-DD), so it can't slip past `rules_since`, unless
   `stories.legacy` lists it (implemented before the rules, left as it is);
 - states, in order: pending → ready → planned → in progress → implemented
-  (process.md#states); each adds what the role that hands it over owes:
+  (docs/process/states.md); each adds what the role that hands it over owes:
   - ready (product owner): no doubt marker, its scenarios (technical
     stories excepted) with every criterion cited, and — with the milestone
     layer — its milestone;
@@ -19,7 +19,7 @@
   changes or removes exist; ready on, the ones it adds too; implemented,
   added and changed exist and removed are gone.
 
-Reference: docs/artifacts.md#story.
+Reference: docs/artifacts/story.md.
 """
 
 import os

@@ -9,10 +9,10 @@ needs to change a decision in force goes to `/sanchin:architect`. Building
 it is `/sanchin:developer`'s.
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and
-   offer `/sanchin:init`), and the planning cycle in
-   `${CLAUDE_PLUGIN_ROOT}/docs/process.md` — sections *Roles and cycles*,
-   *States* and *2. Planning cycle* — and follow it. Read the plan format in
-   `${CLAUDE_PLUGIN_ROOT}/docs/artifacts.md#plan`, and start every plan from
+   offer `/sanchin:init`). Then read only these, and follow the cycle:
+   `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
+   `process/planning.md` and `process/working-rules.md`; the plan format in
+   `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/plan.md`; and start every plan from
    the project's template (`base_docs.templates`) or, if it has none,
    `${CLAUDE_PLUGIN_ROOT}/templates/plan.md`.
 2. Take only a **ready** story. A pending one isn't refined yet: say so and

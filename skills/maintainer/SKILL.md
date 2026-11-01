@@ -4,9 +4,9 @@ description: Fixes a known bug through the short lane — the issue is the spec,
 ---
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and
-   offer `/sanchin:init`), and the bug lane in
-   `${CLAUDE_PLUGIN_ROOT}/docs/process.md#bug-lane`, together with its
-   sections on pacing, costly runs, git and boundaries.
+   offer `/sanchin:init`). Then read only these:
+   `${CLAUDE_PLUGIN_ROOT}/docs/process/bug-lane.md`, `process/working-rules.md`,
+   and `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/issue.md`.
 2. Find or create the issue where the adapter keeps issues
    (`base_docs.issues`), following an existing issue's structure.
 3. Follow the lane in order. Write the root cause in the issue before

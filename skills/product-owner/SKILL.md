@@ -8,10 +8,13 @@ build a ready story is `/sanchin:tech-lead`'s, building it is
 `/sanchin:developer`'s, and architecture changes are `/sanchin:architect`'s.
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and
-   offer `/sanchin:init`), and the product cycle in
-   `${CLAUDE_PLUGIN_ROOT}/docs/process.md` — sections *Roles and cycles*,
-   *States* and *1. Product cycle* — and follow it. Read the formats in
-   `${CLAUDE_PLUGIN_ROOT}/docs/artifacts.md` before writing an artifact.
+   offer `/sanchin:init`). Then read only these, and follow the cycle:
+   `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
+   `process/product.md` and `process/working-rules.md`; and before writing
+   one, the format of each artifact you produce — `artifacts/story.md`,
+   `artifacts/scenarios.md`, `artifacts/layers-and-roadmap.md`. *Why:* the
+   rest of the process is other roles'; loading it costs context and
+   invites doing their work.
 2. Read the product's principles every time from the documents the adapter
    points to (`base_docs`): mission and vision (and component visions),
    open issues, pending proposals, the roadmap, decision records. This skill

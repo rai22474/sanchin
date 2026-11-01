@@ -25,7 +25,7 @@ layers: [epic, narrative, milestone]   # optional layers in use; empty = stories
 components: [app, api]       # one plan per component a story touches
 merge: local                 # local: merge into main | pr: push and open a pull request
 
-base_docs:                   # read by the skills (see artifacts.md)
+base_docs:                   # read by the skills (see artifacts/base-documents.md)
   mission_vision: docs/product/vision.md
   component_vision: docs/{component}/vision.md
   stack: docs/stack.md
@@ -104,17 +104,17 @@ gates:
 |---|---|---|
 | `version` | all | Adapter format version. Only `1` exists. |
 | `language`, `terms` | skills | The skills write artifacts in this language and with these names. |
-| `layers` | skills, validator | `epic`, `narrative`, `milestone`. Off by default. The product owner walks them in that order and skips a layer that is off ([process.md](process.md#1-product-cycle)). |
+| `layers` | skills, validator | `epic`, `narrative`, `milestone`. Off by default. The product owner walks them in that order and skips a layer that is off ([process/product.md](process/product.md#1-product-cycle)). |
 | `components` | skills, validator | `{component}` in any glob expands to each one. |
-| `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process.md](process.md#35-close-retro-and-merge)). |
+| `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process/delivery.md](process/delivery.md#35-close-retro-and-merge)). |
 | `base_docs.*` | skills | Where the four base documents, decisions, issues, proposals and templates live. |
 | `docs.*` | validator | Progressive-context rules ([context.md](context.md)). |
-| `stories.*` | validator, skills | Story rules ([artifacts.md](artifacts.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process.md](process.md#13-stories-from-a-narrative)). |
-| `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process.md](process.md#states)). Values must differ. |
+| `stories.*` | validator, skills | Story rules ([artifacts/story.md](artifacts/story.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process/product.md](process/product.md#13-stories-from-a-narrative)). |
+| `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process/states.md](process/states.md#states)). Values must differ. |
 | `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. |
-| `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts.md](artifacts.md#roadmap)). |
+| `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts/layers-and-roadmap.md](artifacts/layers-and-roadmap.md#roadmap)). |
 | `acceptance.*` | developer, maintainer | How to run acceptance scenarios, and whether a run is costly. |
-| `plans.*` | validator | Plan rules ([artifacts.md](artifacts.md#plan)). In `constitution.globs`, `{component}` expands to the plan's own component — the first component named in the plan's path — so a plan answers the global rules plus its component's; a plan whose path names no component answers every component's. |
+| `plans.*` | validator | Plan rules ([artifacts/plan.md](artifacts/plan.md#plan)). In `constitution.globs`, `{component}` expands to the plan's own component — the first component named in the plan's path — so a plan answers the global rules plus its component's; a plan whose path names no component answers every component's. |
 | `gates[]` | hook, `sanchin gates` | `level` is `edit`, `pre-commit`, `pre-push` or `ci`; `{file}` is replaced by the file path, and a gate without it runs once for all files; `timeout` in seconds, default 120 ([gates.md](gates.md)). |
 
 Unknown keys are ignored by the validator; the skills may read keys it
