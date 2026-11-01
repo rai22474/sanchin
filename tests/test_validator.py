@@ -180,6 +180,7 @@ class ValidatorTest(unittest.TestCase):
             ADAPTER.replace("  superseded_index:", "  legacy: [docs/stories/story-1.md]\n  superseded_index:"),
         )
         self.project.write("docs/stories/story-1.md", story("ST-1", "implemented"))
+        self.project.write("app/features/thing.feature", FEATURE.replace("  @pending\n", ""))
         self.write_superseded_index()
         self.assertEqual(self.errors("stories", "plans"), [])
 
@@ -287,7 +288,7 @@ class ValidatorTest(unittest.TestCase):
     def test_feature_in_another_language_is_traced(self):
         self.project.write(
             "app/features/thing.feature",
-            "# language: fr\nFonctionnalité: chose\n\n  Règle: r\n\n    # ST-1: AC 1\n    @lent\n    Scénario: première chose\n      Soit rien\n",
+            "# language: fr\nFonctionnalité: chose\n\n  Règle: r\n\n    # ST-1: AC 1\n    @lent @pending\n    Scénario: première chose\n      Soit rien\n",
         )
         self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
         self.write_superseded_index()
@@ -301,6 +302,113 @@ class ValidatorTest(unittest.TestCase):
         self.project.write(".claude/sanchin.yaml", ADAPTER.replace("components: [app]", "components: [app]\nmerge: squash"))
         with self.assertRaises(AdapterError):
             load_config(self.project.root)
+
+    # --- states and roles --------------------------------------------------
+
+    def test_ready_story_has_no_doubt_and_its_scenarios(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "ready", body="\n[DOUBT: how long?]\n"))
+        errors = self.errors("stories")
+        self.assertTrue(any("unresolved '[DOUBT:'" in error for error in errors))
+        self.assertTrue(any("needs its 'scenarios'" in error for error in errors))
+
+    def test_ready_story_has_every_criterion_cited(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "ready", "scenarios: app/features/thing.feature\n"))
+        self.assertTrue(any("criteria 2 not cited" in error for error in self.errors("stories")))
+
+    def test_ready_story_needs_no_plan_but_planned_does(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "ready", "scenarios: app/features/thing.feature\n"))
+        self.assertFalse(any("needs its 'plan'" in error for error in self.errors("stories")))
+        self.project.write("docs/stories/story-1.md", story("ST-1", "planned", "scenarios: app/features/thing.feature\n"))
+        self.assertTrue(any("needs its 'plan'" in error for error in self.errors("stories")))
+
+    def test_planned_story_holds_its_plans_to_the_in_progress_rules(self):
+        self.project.write("docs/plans/p.md", "# Plan\n\n## Current state\n\nx\n")
+        self.project.write("docs/stories/story-1.md", story("ST-1", "planned", "plan: docs/plans/p.md\n"))
+        self.assertTrue(any("missing section 'Design'" in error for error in self.errors("plans")))
+
+    def test_unimplemented_scenario_must_be_tagged_pending(self):
+        self.project.write("app/features/thing.feature", FEATURE.replace("  @pending\n", ""))
+        self.project.write("docs/stories/story-1.md", story("ST-1", "ready"))
+        self.assertTrue(any("tag it @pending" in error for error in self.errors("stories")))
+
+    def test_implemented_scenario_must_drop_the_pending_tag(self):
+        self.project.write("docs/stories/story-1.md", story("ST-1", "implemented", "date: 2025-01-01\n"))
+        self.assertTrue(any("still tagged @pending" in error for error in self.errors("stories")))
+
+    def test_feature_level_pending_tag_counts(self):
+        self.project.write("app/features/thing.feature", "@pending\nFeature: thing\n\n  # ST-1: AC 1\n  Scenario: x\n    Given y\n")
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
+        self.assertFalse(any("@pending" in error for error in self.errors("stories")))
+
+    def test_ready_delta_needs_its_added_scenarios_written(self):
+        delta = "\n## Scenario delta\n\n- + app/features/thing.feature: brand new\n"
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending", body=delta))
+        self.assertFalse(any("brand new" in error for error in self.errors("stories")))
+        self.project.write("docs/stories/story-1.md", story("ST-1", "ready", body=delta))
+        self.assertTrue(any("'brand new' should exist" in error for error in self.errors("stories")))
+
+    # --- roadmap -------------------------------------------------------------
+
+    def use_milestones(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER.replace("components: [app]", "components: [app]\nlayers: [milestone]\nroadmap: {directory: docs/roadmap}"),
+        )
+
+    def milestone(self, name, state):
+        self.project.write(
+            f"docs/roadmap/{name}.md",
+            f"# {name}\n\n[Docs](../index.md)\n\n**State:** {state}.\n\n"
+            "<!-- sanchin:milestone-stories:start -->\n<!-- sanchin:milestone-stories:end -->\n",
+        )
+
+    def roadmap(self, *extra):
+        stdout, stderr = io.StringIO(), io.StringIO()
+        with redirect_stdout(stdout), redirect_stderr(stderr):
+            code = main(["--project", str(self.project.root), "roadmap", *extra])
+        return code, stderr.getvalue()
+
+    def test_ready_story_needs_its_milestone(self):
+        self.use_milestones()
+        self.project.write("docs/stories/story-1.md", story("ST-1", "ready", "scenarios: app/features/thing.feature\n"))
+        self.assertTrue(any("needs its 'milestone'" in error for error in self.errors("stories")))
+
+    def test_story_names_an_existing_milestone(self):
+        self.use_milestones()
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending", "milestone: m-01\n"))
+        self.assertTrue(any("names no milestone" in error for error in self.errors("stories")))
+
+    def test_milestone_table_is_generated_and_checked(self):
+        self.use_milestones()
+        self.milestone("m-01", "in progress")
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending", "milestone: m-01\n"))
+        code, problems = self.roadmap()
+        self.assertEqual(code, 1)
+        self.assertIn("stories table is stale", problems)
+        code, problems = self.roadmap("--write")
+        self.assertEqual((code, problems), (0, ""))
+        self.assertIn("| [ST-1](../stories/story-1.md) | pending |", (self.project.root / "docs/roadmap/m-01.md").read_text())
+
+    def test_milestone_closed_only_when_every_story_is_implemented(self):
+        self.use_milestones()
+        self.milestone("m-01", "closed")
+        self.project.write("docs/stories/story-1.md", story("ST-1", "pending", "milestone: m-01\n"))
+        self.roadmap("--write")
+        self.assertIn("isn't done (ST-1)", self.roadmap()[1])
+
+    def test_finished_milestone_must_read_closed(self):
+        self.use_milestones()
+        self.milestone("m-01", "in progress")
+        self.project.write("app/features/thing.feature", FEATURE.replace("  @pending\n", ""))
+        self.project.write("docs/stories/story-1.md", story("ST-1", "implemented", "date: 2025-01-01\nmilestone: m-01\n"))
+        self.roadmap("--write")
+        self.assertIn("set its state to 'closed'", self.roadmap()[1])
+
+    def test_only_one_milestone_in_progress(self):
+        self.use_milestones()
+        self.milestone("m-01", "in progress")
+        self.milestone("m-02", "in progress")
+        self.assertIn("only one at a time", self.roadmap()[1])
 
     def test_duplicated_story_id_fails(self):
         self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
@@ -325,7 +433,7 @@ class ValidatorTest(unittest.TestCase):
         self.assertTrue(any("trace comment is not above a scenario" in error for error in self.errors("stories")))
 
     def test_trace_comment_may_sit_above_tags(self):
-        self.project.write("app/features/thing.feature", "Feature: thing\n\n  # ST-1: AC 1\n  @slow\n  Scenario: x\n")
+        self.project.write("app/features/thing.feature", "Feature: thing\n\n  # ST-1: AC 1\n  @slow @pending\n  Scenario: x\n")
         self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
         self.write_superseded_index()
         self.assertEqual(self.errors("stories"), [])
@@ -417,6 +525,7 @@ FEATURE = """
 Feature: thing
 
   # ST-1: AC 1
+  @pending
   Scenario: first thing happens
     Given nothing
 """

@@ -18,6 +18,15 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
 2. **Ask** only what the repository can't answer, as selectable options with
    a recommendation first.
 3. **Write** `.claude/sanchin.yaml` with the project's own names and paths.
+   If the write is refused, show the adapter in full in a YAML block so the
+   user can save it — never only a summary of it.
+   Map all five story states (`pending`, `ready`, `planned`, `in_progress`,
+   `implemented`) to the project's words; a project with fewer states gets
+   the missing ones proposed in its language, as options. With milestones in
+   use, turn the `milestone` layer on and fill `roadmap:` (directory, state
+   line, state values); with feature files, set `scenarios.pending_tag` to
+   the tag the runner already skips, or propose `@pending` and the runner
+   change that skips it.
    Set `rules_since` to today; list plans of in-progress stories that predate
    the rules in `plans.legacy`, and implemented stories with no date in
    `stories.legacy`.

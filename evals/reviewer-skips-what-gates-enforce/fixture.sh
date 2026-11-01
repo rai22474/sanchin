@@ -84,6 +84,7 @@ cat > app/features/export.feature <<'FEATURE'
 Feature: export
 
   # ST-01: AC 1
+  @pending
   Scenario: one line per todo
     Given todos "milk" and "eggs"
     When I export them

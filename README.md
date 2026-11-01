@@ -5,7 +5,7 @@
 <h1 align="center">sanchin</h1>
 
 <p align="center"><b>A reproducible, spec-first development process for Claude Code.</b><br>
-Executable specs · validated artifacts · deterministic gates · progressive context.</p>
+Executable specs · validated artifacts · deterministic gates · progressive context.</p>◊
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
@@ -15,16 +15,20 @@ Executable specs · validated artifacts · deterministic gates · progressive co
 
 ---
 
-sanchin is a Claude Code plugin that runs one development loop, the same way
-on every story, in every project: stories grilled with you, scenarios red
-before code, a plan per component, two reviews, and a retro that feeds the
-process itself. A validator and deterministic gates check the artifacts, so
-the process holds whether or not the agent remembers it.
+sanchin is a Claude Code plugin that runs one development process, the same
+way on every story, in every project. A product owner grills the mission
+into epics, narratives and stories with you and places them in a roadmap; a
+tech-lead designs each story, one plan per component; a developer makes its
+scenarios red, then green, through two reviews and a retro that feeds the
+process itself; an architect turns technical ideas into decision records. A
+validator and deterministic gates check every hand-off, so the process holds
+whether or not the agent remembers it.
 
 It grew inside a real multi-service project. Everything specific to that
 project went into an **adapter**; what is left is the process.
 
 ```text
+/plugin marketplace add anthropics/claude-plugins-official   # for its dependency
 /plugin marketplace add rai22474/sanchin
 /plugin install sanchin@sanchin
 /sanchin:init
@@ -45,7 +49,7 @@ project went into an **adapter**; what is left is the process.
 - [Quickstart](#quickstart)
 - [How it works](#how-it-works)
   - [The four pillars](#the-four-pillars)
-  - [The loop](#the-loop)
+  - [The process](#the-process)
   - [Roles](#roles)
 - [Configuration](#configuration)
 - [Validator and gates](#validator-and-gates)
@@ -67,11 +71,15 @@ project went into an **adapter**; what is left is the process.
 
 Installing sanchin also installs its one dependency,
 [mattpocock-skills](https://github.com/mattpocock/skills), whose grilling
-and code-review skills run the grills and the first review.
+and code-review skills run the grills and the first review. It comes from
+the official marketplace, `claude-plugins-official`, which must be added:
+without it sanchin installs but **does not load** (`/plugin` shows
+"failed to load").
 
 ### 1. Install
 
 ```text
+/plugin marketplace add anthropics/claude-plugins-official   # skip if already added
 /plugin marketplace add rai22474/sanchin
 /plugin install sanchin@sanchin
 ```
@@ -101,12 +109,13 @@ list — and again whenever it changes ([gates.md](docs/gates.md#trust)).
 ### 4. Build something
 
 ```text
-/sanchin:developer
+/sanchin:product-owner     # mission → epics → narratives → stories → roadmap
+/sanchin:tech-lead         # a ready story → its plans
+/sanchin:developer         # a planned story → merged code
 ```
 
-The developer skill takes a chosen idea to merged code through
-[the loop](#the-loop). Check the project at any time — locally, in a git
-hook, or in CI:
+Each role runs its cycle of [the process](#the-process) and stops for you.
+Check the project at any time — locally, in a git hook, or in CI:
 
 ```bash
 scripts/sanchin check        # inside Claude Code: ${CLAUDE_PLUGIN_ROOT}/scripts/sanchin
@@ -114,9 +123,21 @@ scripts/sanchin check        # inside Claude Code: ${CLAUDE_PLUGIN_ROOT}/scripts
 
 ### Sharing with your team
 
-Add the plugin to the project's `.claude/settings.json`
-(`extraKnownMarketplaces` and `enabledPlugins`) so everyone working on it
-gets the same process. **Prefer this to a user-wide install:** projects that
+Add the plugin to the project's `.claude/settings.json` so everyone working
+on it gets the same process — both marketplaces, since the dependency comes
+from the official one:
+
+```json
+{
+  "extraKnownMarketplaces": {
+    "sanchin": {"source": {"source": "github", "repo": "rai22474/sanchin"}},
+    "claude-plugins-official": {"source": {"source": "github", "repo": "anthropics/claude-plugins-official"}}
+  },
+  "enabledPlugins": {"sanchin@sanchin": true}
+}
+```
+
+**Prefer this to a user-wide install:** projects that
 don't use sanchin then never see its skills or its hook. (The role skills
 only take over in a project with an adapter, but a user-wide install still
 offers them everywhere.) To bring sanchin into a repository that already has
@@ -144,31 +165,26 @@ incremental.** An implemented story is never edited; a change is a new
 story with a *supersedes* line and a scenario delta (+ / ~ / −), and the
 current behaviour is whatever the scenarios — kept true by the tests — say.
 
-### The loop
+### The process
 
 ```mermaid
 flowchart TD
-  idea([idea]) --> PO["product-owner · what, in which order"]
-  PO --> AR["architect · does it fit"]
-  AR --> EP["developer · grill into an epic, break into stories"]
-  EP --> FG
-
-  subgraph story ["per story — own branch + worktree"]
-    FG["functional grill<br/>doubt markers answered"] --> RED["scenarios red<br/>traced to criteria"]
-    RED --> PL["one plan per component<br/>constitution checklist"]
-    PL --> TG["technical grill<br/>open questions closed"]
-    TG --> XC["cross-check<br/>story ↔ scenarios ↔ plans"]
-    XC --> GR["green<br/>local gates"]
-    GR --> RV["reviewer<br/>findings with source"]
-    RV --> CL["close · retro · merge"]
-  end
-
-  CL --> NX["prepare next story · stop for the human"]
-  CL -. retros .-> CO["coach · rule of two → skill change + eval"]
-
-  bug([bug]) --> MT["maintainer · issue as spec → diagnose → red → fix → reviews → close"]
-  MT -. escalates if behaviour, contract or design changes .-> FG
+  M([mission]) --> PO["product-owner<br/>epics → narratives → stories<br/>scenarios @pending · roadmap"]
+  PO -- ready --> TL["tech-lead<br/>plans per component<br/>technical grill · cross-check"]
+  TL -- planned --> DV["developer<br/>scenarios red → green<br/>reviews · close · merge"]
+  DV -- "review step" --> RV["reviewer<br/>project standards + story spec<br/>findings with source"]
+  I([technical idea]) --> AR["architect<br/>technical grill → decision record"]
+  AR -- technical stories --> PO
+  B([bug]) --> MT["maintainer<br/>issue → diagnose → red → fix"]
+  MT -. behaviour changes .-> PO
+  MT -- "review step" --> RV
+  DV -. retros .-> CO["coach<br/>rule of two → change + eval"]
 ```
+
+Four cycles, one role each; a role finishes, leaves its artifacts
+validated, and stops. A story's state says whose turn it is: **pending** →
+**ready** (product owner) → **planned** (tech-lead) → **in progress** →
+**implemented** (developer).
 
 Each step carries a *why* in [docs/process.md](docs/process.md) — the general
 reason behind it, never the anecdote that produced it, so it applies to
@@ -179,10 +195,11 @@ cases nobody has seen yet.
 | Skill | Role |
 |---|---|
 | `/sanchin:init` | Maps an existing project into the adapter (or scaffolds a new one), creates only what's missing, proposes gates. Re-run it as a doctor. |
-| `/sanchin:product-owner` | What to build next and in what order; leaves a proposal draft. |
-| `/sanchin:architect` | Whether a change fits the decisions in force; leaves a decision-record draft. |
-| `/sanchin:developer` | Takes a chosen idea to merged code through the loop. |
-| `/sanchin:maintainer` | Fixes a bug through the short lane, or escalates. |
+| `/sanchin:product-owner` | Grills the mission into epics, narratives and stories, writes their scenarios, places them in the roadmap's milestones, hands them over ready. Also: what to build next. |
+| `/sanchin:tech-lead` | Takes a ready story to planned: one plan per component, technical grill, cross-check. |
+| `/sanchin:developer` | Takes a planned story to merged code: scenarios red, green, reviews, close, merge. |
+| `/sanchin:architect` | Turns a technical idea — a refactor, a new tool — into a decision record and technical stories. Also: whether an approach fits. |
+| `/sanchin:maintainer` | Fixes a bug through the short lane, or escalates it to the product owner as a story. |
 | `/sanchin:reviewer` | Reviews against the project's standards and the story's spec, without repeating the gates or a generic review. |
 | `/sanchin:coach` | Reads the retros, finds what keeps recurring, proposes process changes with their eval. |
 
@@ -274,6 +291,7 @@ in [docs/decisions/](docs/decisions/index.md).
 | [0016](docs/decisions/0016-general-whys.md) | Every rule carries a general why | Anecdotes are matched by shape; reasons generalize. |
 | [0017](docs/decisions/0017-english.md) | sanchin in English, projects in their own language | Widest common language for the plugin; each team keeps its words. |
 | [0018](docs/decisions/0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review | A step that runs only if a plugin happens to be installed isn't reproducible. |
+| [0019](docs/decisions/0019-roles-per-cycle.md) | Four cycles, one role each, five story states | Each hand-off is a decision with an owner; the state says whose turn it is. |
 
 </details>
 
@@ -310,8 +328,8 @@ PYTHONPATH=scripts:tests uv run --no-project --with pyyaml --with gherkin-offici
 # The repo's own docs
 scripts/sanchin check
 
-# Skill evals, with a no-plugin baseline
-claude plugin eval . --scaffold
+# Skill evals, with a no-plugin baseline (needs a sandbox; see evals/README.md)
+evals/run.sh --scaffold --allow-tools Bash Write Edit
 ```
 
 Notable changes go in [CHANGELOG.md](CHANGELOG.md). Versions follow

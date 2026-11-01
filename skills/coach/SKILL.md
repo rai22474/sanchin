@@ -6,9 +6,11 @@ description: Aggregates the retros of closed stories and bug fixes, finds the si
 Read `${CLAUDE_PLUGIN_ROOT}/docs/improvement.md` first: it defines the
 signals, the retro and the rule of two.
 
-1. **Collect** the Retro sections of plans and issues closed since the last
-   coach run (the last run's date is in the project's process log, or ask),
-   and the review sections of the same plans.
+1. **Collect** the Retro sections written since the last coach run (the
+   last run's date is in the project's process log, or ask) — stories
+   (product), plans (planning and delivery), decision records
+   (architecture), issues (bug lane) — and the review sections of the same
+   plans. Count each signal under the cycle that wrote it.
 2. **Count**: findings by source label and by rule; corrections, repeated
    questions, escaped findings and gate failures by theme.
 3. **Find** the signals that reached two. For each, decide where the change

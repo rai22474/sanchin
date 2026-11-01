@@ -1,7 +1,7 @@
 """Plan rules: the minimum a plan needs at each state of its story.
 
-For every plan a story links, when the story is in progress, or implemented
-on or after `plans.rules_since` (plans listed in `plans.legacy` predate the
+For every plan a story links, when the story is planned or in progress
+(the `in_progress` rule set), or implemented on or after `plans.rules_since` (plans listed in `plans.legacy` predate the
 rules and are skipped):
 
 - the sections `required_sections[<state>]` lists are present;
@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .config import Config, expand_components
 from .markdown import has_section, section
-from .stories import Story, is_legacy
+from .stories import Story, is_legacy, state_name
 
 _OPEN_ITEM = re.compile(r"^\s*(?:[-*]|\d+\.)\s+\S", re.MULTILINE)
 _DECISION_REFERENCE = re.compile(r"\bD-?\d+\b")
@@ -29,14 +29,14 @@ _DECISION_REFERENCE = re.compile(r"\bD-?\d+\b")
 def check_plans(config: Config, stories: list[Story]) -> list[str]:
     errors = []
     for story in stories:
-        state_name = _state_name(config, story)
-        if state_name is None:
+        rule_set = _state_name(config, story)
+        if rule_set is None:
             continue
         for plan_path in _plan_paths(config, story):
             if plan_path.is_file():
                 text = plan_path.read_text(encoding="utf-8")
                 constitution = constitution_items(config, plan_component(config, plan_path))
-                errors.extend(f"{plan_path}: {problem}" for problem in _plan_problems(config, text, state_name, constitution))
+                errors.extend(f"{plan_path}: {problem}" for problem in _plan_problems(config, text, rule_set, constitution))
     return errors
 
 
@@ -60,14 +60,15 @@ def constitution_items(config: Config, component: str | None = None) -> list[str
 
 
 def _state_name(config: Config, story: Story) -> str | None:
-    keys = config.stories
-    state = story.get(keys.state_key)
-    if state == keys.states["in_progress"]:
+    """Which set of plan rules applies: `in_progress` from the moment the
+    tech-lead hands the story over as planned, `implemented` once closed."""
+    name = state_name(config, story)
+    if name in ("planned", "in_progress"):
         return "in_progress"
     if (
-        state == keys.states["implemented"]
+        name == "implemented"
         and not is_legacy(config, story)
-        and (story.get(keys.date_key) or "") >= config.plans.rules_since
+        and (story.get(config.stories.date_key) or "") >= config.plans.rules_since
     ):
         return "implemented"
     return None

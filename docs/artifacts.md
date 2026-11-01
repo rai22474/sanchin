@@ -25,12 +25,15 @@ single free-form "context" field mixes them and goes stale as a block.
 
 ## Story
 
-The spec. One file per story, under `stories.directory`.
+The spec. One file per story, under `stories.directory`. Written by the
+product owner (technical stories by the architect, escalated bugs by the
+maintainer); its state says which role holds it ([process.md](process.md#states)).
 
 ```markdown
 ---
 id: ST-12
-state: pending            # pending | in progress | implemented
+state: ready              # pending | ready | planned | in progress | implemented
+milestone: m-02-export    # with the milestone layer: the roadmap places it
 date: 2026-11-03          # set when implemented
 plan: docs/plans/app/export.md, docs/plans/api/export.md
 scenarios: app/features/export.feature
@@ -61,11 +64,13 @@ As a <user>, I want <capability>, so that <value>.
 | Rule | Enforced by |
 |---|---|
 | Frontmatter has a unique id and a known state; an implemented story has its date. | validator |
-| `plan` and `scenarios` paths exist. An in-progress story has its plan; a story implemented on or after `rules_since` has its plan and scenarios (technical stories need no scenarios). | validator |
-| No doubt marker (`[DOUBT: …]`) once the story leaves `pending`. | validator |
-| Every criterion of a story implemented on or after `rules_since` is cited by a scenario, unless it carries the exemption text; every citation names an existing criterion. | validator |
+| `plan` and `scenarios` paths exist. | validator |
+| **ready** on: no doubt marker; its scenarios (technical stories excepted), every criterion cited unless it carries the exemption text; its milestone, with that layer on. | validator |
+| **planned** and **in progress**: its plans, held to the plan rules. | validator |
+| **implemented** on or after `rules_since`: plans and scenarios, every criterion cited. | validator |
+| Every citation names an existing story and criterion. | validator |
 | A supersedes link points to an existing story; the superseded-by table is up to date. | validator |
-| Scenario delta matches the feature files: before implementation `~` and `−` exist; after it `+` and `~` exist and `−` is gone. | validator |
+| Scenario delta matches the feature files: pending, `~` and `−` exist; ready on, `+` too; implemented, `+` and `~` exist and `−` is gone. | validator |
 | The story says only the "what": no code, no current state. | review |
 | An implemented story, and its plans, are never edited after the commit that set it implemented (skipped without git, for `stories.legacy`, and while the close isn't committed). | validator |
 
@@ -73,11 +78,15 @@ As a <user>, I want <capability>, so that <value>.
 
 Executable acceptance scenarios, Gherkin by default (the adapter names the
 runner). Feature files are organized by capability and are the living spec.
+The product owner writes them when refining a story, tagged `@pending`; the
+developer makes them red, then green, and drops the tag when the story
+closes.
 
 ```gherkin
 Feature: export
 
   # ST-12: AC 1, 2
+  @pending
   Scenario: export includes archived items
     Given …
 ```
@@ -85,12 +94,14 @@ Feature: export
 | Rule | Enforced by |
 |---|---|
 | Each scenario covering a criterion carries the trace comment above it; a trace comment not above a scenario is an error. | validator |
+| Every feature file parses as Gherkin. | validator |
+| A scenario whose stories are all unimplemented is tagged `@pending` (on itself, its rule or its feature); one covering an implemented story isn't. The runner skips the tag. | validator |
 | Red for the right reason before the code exists. | developer, review |
 
 ## Plan
 
-The "how" of one story for one component. Frozen once the story is
-implemented.
+The "how" of one story for one component, written by the tech-lead.
+Frozen once the story is implemented.
 
 ```markdown
 # Plan — <what changes> (ST-12)
@@ -110,13 +121,13 @@ implemented.
 ## 8. Decisions            D1, D2 … from the technical grill
 ## 9. Implementation       what changed against the plan, and why
 ## 10. Review              findings with their source label and outcome
-## 11. Retro               see improvement.md
+## 11. Retro               Planning (tech-lead) and Delivery (developer); see improvement.md
 ```
 
 | Rule | Enforced by |
 |---|---|
-| In progress: Current state, Design and Steps exist. Implemented: also Implementation and Review. | validator (`required_sections`) |
-| Open questions empty once the story is in progress — the story goes in progress only after the technical grill closes them. | validator |
+| Planned and in progress: Current state, Design and Steps exist (`required_sections.in_progress`). Implemented: also Implementation and Review. | validator (`required_sections`) |
+| Open questions empty once the story is planned — the tech-lead sets it planned only after the technical grill closes them. | validator |
 | Constitution checklist answers every constitution item that applies to the plan (global rules plus its component's) with an allowed verdict; every exception names a `D-n`. | validator |
 | Plans that predate the rules are listed in `plans.legacy` and skipped. | validator |
 | The plan doesn't restate the story; the contract lives in the provider's plan only. | review |
@@ -124,11 +135,49 @@ implemented.
 ## Optional layers
 
 With `layers` in the adapter a project adds **epics**, **narratives** and
-**milestones** above stories. Their rules: narratives are vertical slices
-ordered from less to more functionality; their states, and the milestone
-tables, are derived from the stories and generated, never written by hand.
-The generation is the project's own script; sanchin's validator only reads
-stories.
+**milestones** above stories; the product owner walks them in that order
+(mission → epics → narratives → stories) and skips the ones that are off.
+Narratives are vertical slices ordered from less to more functionality.
+Their states, and the epics', are derived from their stories and generated,
+never written by hand — by the project's own script; sanchin's validator
+generates and checks the milestone tables.
+
+## Roadmap
+
+With the `milestone` layer, the roadmap is a set of **milestones**, one file
+each under `roadmap.directory`: an objective in prose, the product owner's
+state line, and a generated table of the stories that deliver it.
+
+```markdown
+# Milestone 2 — Export my data
+
+[Docs](../index.md) · [Roadmap](index.md)
+
+**State:** in progress.
+
+## Objective
+
+Why these stories ship together, and what is true when they have.
+
+## Stories
+
+<!-- sanchin:milestone-stories:start -->
+| Story | State |
+|---|---|
+| [ST-12 — Export my data as CSV](../stories/st-12-export.md) | ready |
+<!-- sanchin:milestone-stories:end -->
+```
+
+A story joins a milestone through `milestone:` in its frontmatter; the
+table is regenerated with `sanchin roadmap --write`.
+
+| Rule | Enforced by |
+|---|---|
+| A story ready, planned or in progress names its milestone; every named milestone exists. | validator |
+| The state is planned, in progress or closed; at most one milestone is in progress. | validator |
+| A milestone reads closed exactly when it has stories and all are implemented. | validator |
+| The stories table is up to date. | validator |
+| The order of milestones, and which stories go in each, is the product owner's decision. | review |
 
 ## Issues
 

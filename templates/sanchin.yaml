@@ -21,9 +21,11 @@ docs:
 stories:
   directory: docs/stories
   glob: 'st-*.md'
+  states: {pending: pending, ready: ready, planned: planned, in_progress: in progress, implemented: implemented}
   rules_since: 'YYYY-MM-DD'
 scenarios:
   globs: ['tests/features/**/*.feature']
+  pending_tag: '@pending'   # the runner must skip it
 plans:
   directory: docs/plans
   rules_since: 'YYYY-MM-DD'

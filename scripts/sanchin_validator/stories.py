@@ -3,16 +3,21 @@
 - frontmatter has a unique id and a known state; an implemented story has
   its date (YYYY-MM-DD), so it can't slip past `rules_since`, unless
   `stories.legacy` lists it (implemented before the rules, left as it is);
-- `plan` and `scenarios` paths exist; an in-progress story has its plan,
-  and a story implemented since `rules_since` has its plan and scenarios
-  (technical stories need no scenarios);
-- no doubt marker survives once the story leaves pending;
-- every scenario citation names an existing story and criterion, and every
-  criterion of a story implemented since `rules_since` is cited;
+- states, in order: pending → ready → planned → in progress → implemented
+  (process.md#states); each adds what the role that hands it over owes:
+  - ready (product owner): no doubt marker, its scenarios (technical
+    stories excepted) with every criterion cited, and — with the milestone
+    layer — its milestone;
+  - planned / in progress (tech-lead): its plans (held to the plan rules);
+  - implemented since `rules_since` (developer): plans and scenarios;
+- `plan` and `scenarios` paths exist;
+- every scenario citation names an existing story and criterion;
+- a scenario whose stories are all unimplemented carries the pending tag
+  (`@pending`), one covering an implemented story doesn't;
 - a `Supersedes` link points to an existing story;
-- the scenario delta matches the feature files: before implementation the
-  scenarios it changes or removes exist, after it the added and changed
-  ones exist and the removed ones are gone.
+- the scenario delta matches the feature files: pending, the scenarios it
+  changes or removes exist; ready on, the ones it adds too; implemented,
+  added and changed exist and removed are gone.
 
 Reference: docs/artifacts.md#story.
 """
@@ -22,7 +27,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
-from .config import Config
+from .config import STORY_STATES, Config
 from .markdown import parse_frontmatter, section
 from .scenarios import Citation, scenario_names
 
@@ -121,6 +126,29 @@ def implemented_under_rules(config: Config, story: Story) -> bool:
     )
 
 
+def state_name(config: Config, story: Story) -> str | None:
+    """The story's state as sanchin names it (`ready`, `in_progress`…), or None if unknown."""
+    value = story.get(config.stories.state_key)
+    return next((name for name, project_value in config.stories.states.items() if project_value == value), None)
+
+
+def at_least(config: Config, story: Story, name: str) -> bool:
+    """Whether the story has reached `name` in the order of STORY_STATES."""
+    current = state_name(config, story)
+    return current is not None and STORY_STATES.index(current) >= STORY_STATES.index(name)
+
+
+def _technical(config: Config, story: Story) -> bool:
+    return story.get(config.stories.kind_key) == config.stories.technical_kind
+
+
+def _needs_scenarios(config: Config, story: Story) -> bool:
+    """Refined and not yet closed, or closed under the rules: its scenarios are its spec."""
+    if _technical(config, story):
+        return False
+    return (at_least(config, story, "ready") and state_name(config, story) != "implemented") or implemented_under_rules(config, story)
+
+
 def _story_problems(config: Config, story: Story) -> list[str]:
     keys = config.stories
     states = keys.states
@@ -128,22 +156,38 @@ def _story_problems(config: Config, story: Story) -> list[str]:
     if not story.get(keys.id_key):
         problems.append(f"frontmatter has no {keys.id_key!r}")
     state = story.get(keys.state_key)
-    if state not in states.values():
-        problems.append(f"{keys.state_key} {state!r} is not one of {sorted(states.values())}")
+    name = state_name(config, story)
+    if name is None:
+        problems.append(f"{keys.state_key} {state!r} is not one of {list(states.values())}")
     legacy = is_legacy(config, story)
-    if state == states["implemented"] and not legacy and not _ISO_DATE.fullmatch(story.get(keys.date_key) or ""):
+    if name == "implemented" and not legacy and not _ISO_DATE.fullmatch(story.get(keys.date_key) or ""):
         problems.append(f"a story {state!r} needs its {keys.date_key!r} as YYYY-MM-DD (or list it in stories.legacy)")
     problems.extend(_path_problems(config, story))
-    under_rules = implemented_under_rules(config, story)
-    if (state == states["in_progress"] or under_rules) and not story.get(keys.plan_key):
-        problems.append(f"a story {state!r} needs its {keys.plan_key!r}")
-    if under_rules and not story.get(keys.scenarios_key) and story.get(keys.kind_key) != keys.technical_kind:
-        problems.append(f"a story {state!r} needs its {keys.scenarios_key!r}")
-    if state in (states["in_progress"], states["implemented"]) and keys.doubt_marker in story.text:
+    if name in ("planned", "in_progress") or implemented_under_rules(config, story):
+        if not story.get(keys.plan_key):
+            problems.append(f"a story {state!r} needs its {keys.plan_key!r}; the tech-lead writes the plans")
+    if _needs_scenarios(config, story) and not story.get(keys.scenarios_key):
+        problems.append(f"a story {state!r} needs its {keys.scenarios_key!r}; refining it writes its scenarios")
+    if at_least(config, story, "ready") and keys.doubt_marker in story.text:
         problems.append(f"unresolved {keys.doubt_marker!r} marker in a story {state!r}; resolve it in the functional grill")
+    problems.extend(_milestone_problems(config, story))
     problems.extend(_supersedes_problems(config, story))
-    problems.extend(_delta_problems(config, story, implemented=state == states["implemented"]))
+    problems.extend(_delta_problems(config, story))
     return problems
+
+
+def _milestone_problems(config: Config, story: Story) -> list[str]:
+    roadmap = config.roadmap
+    milestone = story.get(config.stories.milestone_key)
+    if roadmap is None:
+        return []
+    if milestone is None:
+        if state_name(config, story) in ("ready", "planned", "in_progress"):
+            return [f"a story {story.get(config.stories.state_key)!r} needs its {config.stories.milestone_key!r}: the roadmap places it"]
+        return []
+    if not (roadmap.directory / f"{milestone}.md").is_file():
+        return [f"{config.stories.milestone_key} {milestone!r} names no milestone in {roadmap.directory}"]
+    return []
 
 
 def _path_problems(config: Config, story: Story) -> list[str]:
@@ -165,10 +209,15 @@ def _supersedes_problems(config: Config, story: Story) -> list[str]:
     ]
 
 
-def _delta_problems(config: Config, story: Story, implemented: bool) -> list[str]:
+def _delta_problems(config: Config, story: Story) -> list[str]:
+    """Pending: what it changes or removes exists. Refined: what it adds is
+    written too (tagged pending). Implemented: added and changed exist,
+    removed are gone."""
     body = section(story.text, config.stories.delta_heading)
     if body is None:
         return []
+    implemented = state_name(config, story) == "implemented"
+    refined = at_least(config, story, "ready")
     problems = []
     for match in _DELTA_LINE.finditer(body):
         operation, scenario = match.group("op"), match.group("scenario")
@@ -176,7 +225,7 @@ def _delta_problems(config: Config, story: Story, implemented: bool) -> list[str
         present = scenario in scenario_names(feature)
         if implemented:
             expected_present = operation in "+~"
-        elif operation == "+":
+        elif operation == "+" and not refined:
             continue
         else:
             expected_present = True
@@ -198,9 +247,7 @@ def _citation_problems(config: Config, stories: list[Story], citations: list[Cit
             problems.append(f"{citation.feature}: cites criterion {citation.criterion} of {citation.story_id}, which does not exist")
     cited = {(citation.story_id, citation.criterion) for citation in citations}
     for story in stories:
-        if not implemented_under_rules(config, story):
-            continue
-        if not story.get(keys.scenarios_key):
+        if not _needs_scenarios(config, story) or not story.get(keys.scenarios_key):
             continue
         story_criteria = criteria(config, story)
         if not story_criteria:
@@ -212,6 +259,36 @@ def _citation_problems(config: Config, stories: list[Story], citations: list[Cit
         ]
         if uncovered:
             problems.append(f"{story.path}: criteria {', '.join(uncovered)} not cited by any scenario")
+    problems.extend(_pending_tag_problems(config, by_id, citations))
+    return problems
+
+
+def _pending_tag_problems(config: Config, by_id: dict, citations: list[Citation]) -> list[str]:
+    """A scenario whose stories are all unimplemented is tagged pending, so CI
+    doesn't run it before the code exists; one that covers an implemented
+    story isn't, so CI does."""
+    tag = config.scenarios.pending_tag
+    if not tag:
+        return []
+    stories_of: dict[tuple, set[str]] = {}
+    scenario_of = {}
+    for citation in citations:
+        key = (citation.feature, citation.scenario.line)
+        stories_of.setdefault(key, set()).add(citation.story_id)
+        scenario_of[key] = citation.scenario
+    problems = []
+    for key, story_ids in sorted(stories_of.items(), key=lambda item: (str(item[0][0]), item[0][1])):
+        cited = [by_id[story_id] for story_id in sorted(story_ids) if story_id in by_id]
+        if not cited:
+            continue
+        scenario = scenario_of[key]
+        tagged = tag in scenario.tags
+        implemented = [story.get(config.stories.id_key) for story in cited if state_name(config, story) == "implemented"]
+        where = f"{key[0]}:{key[1]}: scenario {scenario.name!r}"
+        if implemented and tagged:
+            problems.append(f"{where} covers implemented {', '.join(implemented)} but is still tagged {tag}; drop the tag when its story closes")
+        elif not implemented and not tagged:
+            problems.append(f"{where} covers only unimplemented stories; tag it {tag} until they're implemented")
     return problems
 
 

@@ -21,7 +21,7 @@ terms:                       # what the project calls each artifact
   epic: epic
   narrative: narrative
   milestone: milestone
-layers: [epic, narrative]    # optional layers in use; empty = stories only
+layers: [epic, narrative, milestone]   # optional layers in use; empty = stories only
 components: [app, api]       # one plan per component a story touches
 merge: local                 # local: merge into main | pr: push and open a pull request
 
@@ -47,9 +47,14 @@ docs:
 stories:
   directory: docs/stories
   glob: 'st-*.md'
-  keys: {id: id, state: state, date: date, plan: plan, scenarios: scenarios, kind: kind}
+  keys: {id: id, state: state, date: date, plan: plan, scenarios: scenarios, kind: kind, milestone: milestone}
   technical_kind: technical
-  states: {pending: pending, in_progress: in progress, implemented: implemented}
+  states:                      # in the order a story goes through them
+    pending: pending           # draft; doubts allowed
+    ready: ready               # refined by the product owner
+    planned: planned           # plans closed by the tech-lead
+    in_progress: in progress   # being built by the developer
+    implemented: implemented
   criteria_heading: Acceptance criteria
   criterion_exemption: '(no scenario:'
   doubt_marker: '[DOUBT:'
@@ -62,6 +67,13 @@ stories:
 scenarios:
   globs: ['{component}/tests/features/**/*.feature']
   trace_comment: '^\s*#\s*(?P<story>ST-\d+):\s*AC\s+(?P<criteria>\d+(?:,\s*\d+)*)\s*$'
+  pending_tag: '@pending'      # on scenarios written ahead of their code; '' turns the rule off
+
+roadmap:                       # with the milestone layer on
+  directory: docs/roadmap/milestones
+  glob: '*.md'
+  state_pattern: '^\*\*State:\*\*\s*(?P<state>[^.\n]+?)\s*\.?\s*$'
+  states: {planned: planned, in_progress: in progress, closed: closed}
 
 acceptance:
   run: 'make acceptance COMPONENT={component}'
@@ -91,13 +103,15 @@ gates:
 |---|---|---|
 | `version` | all | Adapter format version. Only `1` exists. |
 | `language`, `terms` | skills | The skills write artifacts in this language and with these names. |
-| `layers` | skills | `epic`, `narrative`, `milestone`. Off by default. |
+| `layers` | skills, validator | `epic`, `narrative`, `milestone`. Off by default. The product owner walks them in that order and skips a layer that is off ([process.md](process.md#1-product-cycle)). |
 | `components` | skills, validator | `{component}` in any glob expands to each one. |
-| `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process.md](process.md#38-close-retro-and-merge)). |
+| `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process.md](process.md#35-close-retro-and-merge)). |
 | `base_docs.*` | skills | Where the four base documents, decisions, issues, proposals and templates live. |
 | `docs.*` | validator | Progressive-context rules ([context.md](context.md)). |
 | `stories.*` | validator, skills | Story rules ([artifacts.md](artifacts.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. |
-| `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. |
+| `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process.md](process.md#states)). Values must differ. |
+| `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. |
+| `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts.md](artifacts.md#roadmap)). |
 | `acceptance.*` | developer, maintainer | How to run acceptance scenarios, and whether a run is costly. |
 | `plans.*` | validator | Plan rules ([artifacts.md](artifacts.md#plan)). In `constitution.globs`, `{component}` expands to the plan's own component — the first component named in the plan's path — so a plan answers the global rules plus its component's; a plan whose path names no component answers every component's. |
 | `gates[]` | hook, `sanchin gates` | `level` is `edit`, `pre-commit`, `pre-push` or `ci`; `{file}` is replaced by the file path, and a gate without it runs once for all files; `timeout` in seconds, default 120 ([gates.md](gates.md)). |

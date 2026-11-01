@@ -19,15 +19,22 @@ agent's private memory, which other sessions and sub-agents never see.
 
 ## The retro
 
-Written when each story closes, in the same commit, as the **Retro**
-section of its plan (with several plans, the first one the story lists; in
-the bug lane, in the issue). Two minutes, five fields:
+Written by each role as its cycle ends, in the same commit, where that
+cycle's artifact lives. Two minutes, five fields:
+
+| Cycle | Written by | Where |
+|---|---|---|
+| Product | product owner | the story's **Retro** section, when it goes ready |
+| Planning | tech-lead | the plan's **Retro** section, *Planning* (with several plans, the first one the story lists) |
+| Delivery | developer | the same section, *Delivery*, when the story closes |
+| Architecture | architect | the decision record's **Retro** section |
+| Bug lane | maintainer | the issue |
 
 ```markdown
 ## Retro
 - Corrections: the user asked to … (core | project)
 - Repeated questions: …
-- Escaped: finding X reached review; step 3.6 should have caught it
+- Escaped: finding X reached review; the cross-check should have caught it
 - Gates: ruff failed 3 times on …
 - Friction: …
 ```
@@ -40,8 +47,10 @@ Each point is classified:
 - **project** — the adapter, the project's standards or its constitution
   should change → a project issue or a direct doc change.
 
-*Why in the plan:* the plan is already the record of the change, and a
-second artifact would be one more thing to keep.
+*Why where the artifact is:* each artifact is already the record of its
+cycle, and a separate retro file would be one more thing to keep. *Why one
+per cycle:* a correction made while refining or planning is a signal about
+that cycle; written later by another role, it is second-hand or lost.
 
 ## Rule of two
 
@@ -55,7 +64,7 @@ worth the cost of a rule.
 A skill change follows the same loop as a story:
 
 1. add an eval case that fails without the change
-   ([evals/](../evals/), run with `claude plugin eval`);
+   ([evals/](../evals/), run with `evals/run.sh`);
 2. change the skill;
 3. the new case passes and the existing ones still do.
 

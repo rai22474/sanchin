@@ -15,7 +15,8 @@ lives is the project's choice, mapped in the adapter.
 `CLAUDE.md`, skills and agent prompts point to indexes; they never copy
 rules. *Why:* a rule copied into an entry point is a second version of it,
 and the two drift apart. The skills in this plugin follow the same rule —
-`/sanchin:developer` reads [process.md](process.md) instead of containing it.
+each role skill reads its cycle in [process.md](process.md) instead of
+containing it.
 
 ## Navigation index
 

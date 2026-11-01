@@ -55,7 +55,7 @@ expects; (e) plan decisions the code doesn't follow, and deviations not
 recorded in the plan's implementation section; (f) behaviour neither the
 story nor the plan asked for. Under 400 words.
 
-The **cross-check before code** step of the process reuses the Spec brief
+The tech-lead's **cross-check** (planning cycle) reuses the Spec brief
 without the diff, on story, scenarios, plans and decision records only.
 
 ## 4. Consolidate
@@ -64,5 +64,8 @@ One deduplicated list; each finding with **source** (`generic-standards`,
 `generic-spec`, `standards-<component>`, `spec`), **kind** (hard or
 judgement), **where** (`file:line`) and **proposed action** (fix, justify in
 the plan, open an issue). Write it into the review section of each plan (a
-contract finding goes to the provider's plan) and show it to the user. Do
-not fix anything here.
+contract finding goes to the provider's plan) and show the user the same
+list, one row per finding with all four fields — not a summary without
+sources. *Why:* the user decides on each finding from what is shown, and
+the source is what later tells which review earned its cost. Do not fix
+anything here.

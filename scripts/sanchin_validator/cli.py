@@ -1,4 +1,4 @@
-"""Command line: `sanchin check`, `sanchin superseded`, `sanchin gates`, `sanchin hook`.
+"""Command line: `sanchin check`, `roadmap`, `superseded`, `gates`, `git-hook`, `trust`, `hook`.
 
 Run it through `scripts/sanchin`, which finds a Python with PyYAML.
 Reference: docs/validator.md.
@@ -19,6 +19,7 @@ from .trust import is_trusted, repository_key, trust
 TRUST_COMMAND = shlex.quote(str(Path(__file__).resolve().parents[1] / "sanchin"))
 from .immutability import immutability_problems
 from .plans import check_plans
+from .roadmap import roadmap_problems, write_blocks
 from .scenarios import citations, feature_files
 from .stories import SUPERSEDED_END, SUPERSEDED_START, check_stories, load_stories, render_superseded_block
 
@@ -67,10 +68,30 @@ def collect_errors(config: Config, selected: list[str], target: Path | None = No
             errors.extend(trace_problems)
             errors.extend(check_stories(config, stories, found))
             errors.extend(immutability_problems(config, stories))
+            errors.extend(roadmap_problems(config, stories))
             errors.extend(_superseded_index_problems(config, stories))
         if "plans" in selected:
             errors.extend(check_plans(config, stories))
     return errors
+
+
+def run_roadmap(config: Config, arguments) -> int:
+    if config.roadmap is None:
+        print("sanchin: the milestone layer is off (add `milestone` to `layers` and a `roadmap` section)", file=sys.stderr)
+        return 2
+    stories, _ = load_stories(config)
+    if arguments.write:
+        problems = write_blocks(config, stories)
+        for problem in problems:
+            print(problem, file=sys.stderr)
+        if problems:
+            return 1
+    problems = roadmap_problems(config, stories)
+    for problem in problems:
+        print(problem, file=sys.stderr)
+    if not problems:
+        print("sanchin: roadmap OK")
+    return 1 if problems else 0
 
 
 def run_superseded(config: Config, arguments) -> int:
@@ -257,6 +278,10 @@ def _parser() -> argparse.ArgumentParser:
     check.add_argument("--only", action="append", choices=CHECKS, help="limit to one group of rules (repeatable)")
     check.add_argument("--file", help="check a single markdown file (per-file doc rules only)")
     check.set_defaults(handler=run_check)
+
+    roadmap = commands.add_parser("roadmap", help="check the milestones, or rewrite their generated story tables")
+    roadmap.add_argument("--write", action="store_true", help="regenerate each milestone's stories table first")
+    roadmap.set_defaults(handler=run_roadmap)
 
     superseded = commands.add_parser("superseded", help="print or write the generated superseded-by table")
     superseded.add_argument("--write", action="store_true", help="rewrite the block in stories.superseded_index")

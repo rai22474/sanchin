@@ -48,6 +48,18 @@ Findings with source, kind, `file:line`, and what was done with each.
 
 ## 11. Retro
 
+### Planning
+
+<!-- The tech-lead's, when the story goes planned. -->
+- Corrections:
+- Repeated questions:
+- Escaped:
+- Gates:
+- Friction:
+
+### Delivery
+
+<!-- The developer's, when the story closes. -->
 - Corrections:
 - Repeated questions:
 - Escaped:

@@ -40,6 +40,7 @@ class StoriesConfig:
     plan_key: str
     scenarios_key: str
     kind_key: str
+    milestone_key: str
     technical_kind: str
     path_separator: str
     states: dict[str, str]
@@ -57,6 +58,7 @@ class StoriesConfig:
 class ScenariosConfig:
     globs: tuple[str, ...]
     trace_comment: str
+    pending_tag: str
 
 
 @dataclass(frozen=True)
@@ -69,6 +71,16 @@ class PlansConfig:
     constitution_verdicts: tuple[str, ...]
     rules_since: str
     legacy: tuple[str, ...]
+
+
+@dataclass(frozen=True)
+class RoadmapConfig:
+    """The milestone layer: the roadmap is a set of milestones holding stories."""
+
+    directory: Path
+    glob: str
+    state_pattern: str
+    states: dict[str, str]
 
 
 @dataclass(frozen=True)
@@ -95,6 +107,7 @@ class Config:
     stories: StoriesConfig
     scenarios: ScenariosConfig
     plans: PlansConfig
+    roadmap: "RoadmapConfig | None" = None
     gates: tuple[Gate, ...] = field(default_factory=tuple)
 
 
@@ -122,6 +135,7 @@ def build_config(project_root: Path, raw: dict) -> Config:
         stories=_stories_config(project_root, _section(raw, "stories")),
         scenarios=_scenarios_config(_section(raw, "scenarios"), components),
         plans=_plans_config(project_root, _section(raw, "plans"), components),
+        roadmap=_roadmap_config(project_root, raw),
         gates=tuple(_gate(entry) for entry in raw.get("gates", [])),
     )
 
@@ -159,6 +173,7 @@ def _stories_config(project_root: Path, raw: dict) -> StoriesConfig:
         plan_key=keys.get("plan", "plan"),
         scenarios_key=keys.get("scenarios", "scenarios"),
         kind_key=keys.get("kind", "kind"),
+        milestone_key=keys.get("milestone", "milestone"),
         technical_kind=raw.get("technical_kind", "technical"),
         path_separator=raw.get("path_separator", ", "),
         states=_states(raw.get("states", {})),
@@ -180,6 +195,8 @@ def _scenarios_config(raw: dict, components: tuple[str, ...]) -> ScenariosConfig
             "trace_comment",
             r"^\s*#\s*(?P<story>[A-Z]+-[A-Z0-9]+):\s*(?:AC|CA)\s+(?P<criteria>\d+(?:,\s*\d+)*)\s*$",
         ),
+        # '' turns the rule off, for a project whose runner can't exclude a tag.
+        pending_tag=str(raw.get("pending_tag", "@pending")),
     )
 
 
@@ -212,13 +229,36 @@ def _gate(entry: dict) -> Gate:
     return Gate(name=entry["name"], glob=entry["glob"], run=entry["run"], level=level, timeout=timeout)
 
 
+STORY_STATES = ("pending", "ready", "planned", "in_progress", "implemented")
+MILESTONE_STATES = ("planned", "in_progress", "closed")
+
+
 def _states(raw: dict) -> dict[str, str]:
-    states = {"pending": "pending", "in_progress": "in progress", "implemented": "implemented"}
-    unknown = set(raw) - set(states)
+    """Story states in the order a story goes through them (process.md#states)."""
+    return _named_values("stories.states", raw, STORY_STATES)
+
+
+def _named_values(where: str, raw: dict, names: tuple[str, ...]) -> dict[str, str]:
+    values = {name: name.replace("_", " ") for name in names}
+    unknown = set(raw) - set(values)
     if unknown:
-        raise AdapterError(f"stories.states has unknown keys {sorted(unknown)}; allowed: {sorted(states)}")
-    states.update(raw)
-    return states
+        raise AdapterError(f"{where} has unknown keys {sorted(unknown)}; allowed: {list(names)}")
+    values.update({name: str(value) for name, value in raw.items()})
+    if len(set(values.values())) != len(values):
+        raise AdapterError(f"{where} gives two states the same value: {values}")
+    return values
+
+
+def _roadmap_config(project_root: Path, raw: dict) -> RoadmapConfig | None:
+    if "milestone" not in raw.get("layers", []):
+        return None
+    section = _section(raw, "roadmap")
+    return RoadmapConfig(
+        directory=project_root / _required(section, "roadmap", "directory"),
+        glob=section.get("glob", "*.md"),
+        state_pattern=section.get("state_pattern", r"^\*\*State:\*\*\s*(?P<state>[^.\n]+?)\s*\.?\s*$"),
+        states=_named_values("roadmap.states", section.get("states", {}), MILESTONE_STATES),
+    )
 
 
 def _section(raw: dict, name: str) -> dict:

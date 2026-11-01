@@ -20,12 +20,14 @@ class Citation:
     story_id: str
     criterion: int
     feature: Path
+    scenario: "Scenario"
 
 
 @dataclass(frozen=True)
 class Scenario:
     name: str
     line: int
+    tags: frozenset[str] = frozenset()
 
 
 @dataclass(frozen=True)
@@ -54,17 +56,18 @@ def citations(config: Config, features: list[Path]) -> tuple[list[Citation], lis
         if parsed.error is not None:
             problems.append(f"{feature}: does not parse as Gherkin: {parsed.error}")
             continue
-        scenario_lines = {scenario.line for scenario in parsed.scenarios}
+        by_line = {scenario.line: scenario for scenario in parsed.scenarios}
         lines = feature.read_text(encoding="utf-8").splitlines()
         for index, line in enumerate(lines):
             match = comment.match(line)
             if match is None:
                 continue
-            if _next_content_line(lines, index + 1) not in scenario_lines:
+            scenario = by_line.get(_next_content_line(lines, index + 1))
+            if scenario is None:
                 problems.append(f"{feature}:{index + 1}: trace comment is not above a scenario")
                 continue
             for number in re.split(r",\s*", match.group("criteria").strip()):
-                found.append(Citation(match.group("story"), int(number), feature))
+                found.append(Citation(match.group("story"), int(number), feature, scenario))
     return found, problems
 
 
@@ -91,16 +94,19 @@ def _parse(feature: Path, _mtime: int) -> ParsedFeature:
         document = Parser().parse(TokenScanner(feature.read_text(encoding="utf-8")))
     except Exception as error:  # the parser raises its own composite exception types
         return ParsedFeature((), " ".join(str(error).split()))
-    return ParsedFeature(tuple(_scenarios(document.get("feature") or {})), None)
+    return ParsedFeature(tuple(_scenarios(document.get("feature") or {}, frozenset())), None)
 
 
-def _scenarios(node: dict):
+def _scenarios(node: dict, inherited: frozenset[str]):
+    """Scenarios under a feature or rule, each with the tags it inherits."""
+    tags = inherited | {tag["name"] for tag in node.get("tags", [])}
     for child in node.get("children", []):
         if "scenario" in child:
             scenario = child["scenario"]
-            yield Scenario(scenario["name"], scenario["location"]["line"])
+            own = {tag["name"] for tag in scenario.get("tags", [])}
+            yield Scenario(scenario["name"], scenario["location"]["line"], frozenset(tags | own))
         elif "rule" in child:
-            yield from _scenarios(child["rule"])
+            yield from _scenarios(child["rule"], tags)
 
 
 def _next_content_line(lines: list[str], start: int) -> int | None:

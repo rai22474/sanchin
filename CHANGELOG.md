@@ -22,7 +22,25 @@ First version, extracted from the process of a real multi-service project.
 - Templates for story, plan, issue, epic, narrative and a minimal adapter.
 - Eval cases for the critical skill rules.
 - Plugin dependency on `mattpocock-skills` for the grills and the generic review.
-- Eighteen decision records.
+- Nineteen decision records.
+
+### Changed before release: four cycles, one role each
+
+- The process is four cycles ([0019](docs/decisions/0019-roles-per-cycle.md)):
+  **product** (`product-owner`: mission → epics → narratives → stories,
+  scenarios tagged `@pending`, roadmap), **planning** (new `tech-lead`:
+  plans, technical grill, cross-check), **delivery** (`developer`: red,
+  green, reviews, close, merge) and **architecture** (`architect`: technical
+  idea → decision record → technical stories). Each role stops at its
+  hand-off.
+- Stories have five states — pending, ready, planned, in progress,
+  implemented — and the validator checks what each requires.
+- Scenarios written ahead of their code carry `@pending` (configurable);
+  the validator checks the tag against the stories' states.
+- The roadmap is the milestone layer: stories name their milestone, and
+  `sanchin roadmap [--write]` generates and checks each milestone's stories
+  table and state.
+- Escalated bugs go to the product owner as pending stories.
 
 ### Fixed before release
 
@@ -61,3 +79,11 @@ First version, extracted from the process of a real multi-service project.
 - The `developer-without-adapter-offers-init` eval has its `case.yaml`.
 - Eval cases for the maintainer (escalation), the reviewer (skips what
   gates enforce, labels sources) and the coach (rule of two).
+- `evals/run.sh` runs the suite on a copy without the plugin dependency:
+  the eval sandbox can't resolve it, and sanchin silently didn't load, so
+  every case had measured Claude without the plugin.
+- `init` shows the full adapter when it can't write it; its eval judges
+  the adapter written or shown (the eval sandbox refuses writes to
+  `.claude/`).
+- The README says the official marketplace must be added for the
+  dependency — without it sanchin installs but doesn't load.

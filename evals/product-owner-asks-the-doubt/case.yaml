@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: product-owner-asks-the-doubt
+tags: [product-owner, doubts]
+context:
+  scaffold_script: fixture.sh

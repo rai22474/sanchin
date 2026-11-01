@@ -3,8 +3,8 @@
 [README](../README.md) · [Docs](index.md)
 
 How an idea becomes reviewed code on `main`. This file is the single source
-of the loop: `/sanchin:developer` and `/sanchin:maintainer` read it and
-follow it, and nothing else restates it.
+of the process: every role skill reads the cycle it runs here, and nothing
+else restates it.
 
 Every rule carries its *why* — the general reason it exists — so it can be
 applied to cases that don't look like the one that produced it.
@@ -14,156 +14,253 @@ a *story* may be called `historia` or `HU` in a project, a *plan* `tec spec`.
 Paths come from the adapter too (`.claude/sanchin.yaml`, see
 [adapter.md](adapter.md)); this file never names a project's directory.
 
+## Roles and cycles
+
+Four cycles, each run by one role. A role finishes its cycle, leaves its
+artifacts validated, and **stops**; the next role starts when the user
+invokes it. *Why:* each hand-off is a decision the user owns — what to
+build, how to build it, that it is done — and a role that ran on into the
+next cycle would make it for them.
+
 ```mermaid
-flowchart LR
-  idea([idea]) --> PO["/sanchin:product-owner<br/>what and in which order"]
-  PO --> AR["/sanchin:architect<br/>does it fit"]
-  AR --> E["1 · grill into an epic"]
-  E --> B["2 · break into stories"]
-  B --> S
-  subgraph S["3 · per story, in its own branch + worktree — /sanchin:developer"]
-    direction LR
-    F["functional grill"] --> R["scenarios red"]
-    R --> P["plans, one per component"]
-    P --> T["technical grill"]
-    T --> X["cross-check"]
-    X --> G["green"]
-    G --> V["reviews — /sanchin:reviewer"]
-    V --> C["close · retro · merge"]
+flowchart TD
+  M([mission]) --> PO
+  subgraph PO["1 · product — /sanchin:product-owner"]
+    direction TB
+    E["epics"] --> N["narratives"] --> S["stories + scenarios @pending"] --> R["roadmap: milestones"]
   end
-  C --> N["prepare next story · stop"]
+  PO -- "story ready" --> TL
+  subgraph TL["2 · planning — /sanchin:tech-lead"]
+    direction TB
+    P["plans per component"] --> T["technical grill"] --> X["cross-check"]
+  end
+  TL -- "story planned" --> DV
+  subgraph DV["3 · delivery — /sanchin:developer"]
+    direction TB
+    RD["scenarios red"] --> G["green"] --> V["reviews — /sanchin:reviewer"] --> C["close · retro · merge"]
+  end
+  I([technical idea]) --> AR
+  subgraph AR["4 · architecture — /sanchin:architect"]
+    direction TB
+    AG["technical grill"] --> ADR["decision record"] --> TS["technical stories"]
+  end
+  AR -- "technical stories" --> PO
+  B([bug]) --> MT["bug lane — /sanchin:maintainer"]
+  MT -. "behaviour changes" .-> PO
+  MT -- "both reviews" --> V
 ```
 
-## 1. Grill the idea into an epic
+| Cycle | Role | Takes | Hands over |
+|---|---|---|---|
+| [1 · Product](#1-product-cycle) | product owner | the mission, an idea, an escalated bug, technical stories | stories **ready**, placed in the roadmap |
+| [2 · Planning](#2-planning-cycle) | tech-lead | a ready story | the story **planned**: closed plans, one per component |
+| [3 · Delivery](#3-delivery-cycle) | developer | a planned story | the story **implemented**, merged |
+| [4 · Architecture](#4-architecture-cycle) | architect | a technical idea: a refactor, a new tool, an architecture change | an accepted decision record and its technical stories |
+| [Bug lane](#bug-lane) | maintainer | a known bug | the issue resolved, merged — or a story for the product owner |
 
-`/mattpocock-skills:grilling` on the raw idea.
-Dispatch research sub-agents for anything answerable from the repository
-(architecture, conventions, prior art) in parallel with asking the user the
-genuine judgement calls. Keep going until the frontier is empty and the
-user confirms shared understanding.
+`/sanchin:reviewer` serves delivery and the bug lane; `/sanchin:coach`
+reads every cycle's retros ([improvement.md](improvement.md)).
 
+## States
+
+A story moves through five states, in order. Each state is what the role
+that sets it owes the next one, and the validator checks it.
+
+| State | Set by | Means | The validator requires |
+|---|---|---|---|
+| **pending** | product owner, architect, maintainer | A draft: doubts allowed. | an id |
+| **ready** | product owner | Refined: the "what" is closed. | no doubt marker; its scenarios, every criterion cited, tagged `@pending`; its milestone (with that layer on) |
+| **planned** | tech-lead | The "how" is closed. | its plans: required sections, no open question, constitution checklist |
+| **in progress** | developer | Code is being written. | as planned |
+| **implemented** | developer | Done and merged. | its date; scenarios without `@pending`; plans with Implementation and Review |
+
+A role that finds its input isn't really closed sends the story **back**,
+on `main`, where the owner works: the tech-lead who hits a functional
+question writes it as a doubt marker and returns the story to pending; the
+developer who hits a design question writes it as an open question in the
+plan and returns the story to ready, leaving the worktree paused — once the
+story is planned again, the developer rebases onto `main` and goes on.
+*Why:* a question answered by the wrong role is a decision taken without its
+owner.
+
+Every cycle ends with a short **retro** where its artifact lives — the
+story, the plan, the decision record, the issue — in the five fields of
+[improvement.md](improvement.md#the-retro). *Why:* the coach can only
+improve the cycles it can read; a correction made while refining is lost if
+only delivery writes one.
+
+## 1. Product cycle
+
+`/sanchin:product-owner`, from the mission down. Each level is grilled
+with the user — `/mattpocock-skills:grilling` — before the next is written
+from it. Dispatch research sub-agents for anything the repository can
+answer, in parallel with asking the user the genuine judgement calls.
 *Why:* the user's attention is the scarcest input; a question a search can
 answer wastes it.
 
-With the epic layer off ([adapter.md](adapter.md#layers)), go straight to
-stories.
-
-## 2. Break the epic into stories
+The order is fixed; a level whose layer is off in the adapter
+([adapter.md](adapter.md#layers)) is skipped — without narratives, an epic
+breaks straight into stories. *Why:* small projects shouldn't carry
+ceremony they don't need, but no project should write a story before
+knowing which capability it serves.
 
 Start every artifact from its template (the project's, or
 [templates/](../templates/)) and read one real example of the same kind
-first: the template gives the shape, the example the tone.
+first: the template gives the shape, the example the tone. Wire every new
+document into its index ([context.md](context.md)).
+
+### 1.1 Epics from the mission
+
+Grill the mission and vision into the capabilities the user needs: one
+epic per capability, saying why the user needs it. Quote the principle of
+the vision each one serves.
+
+### 1.2 Narratives from an epic
+
+Grill the epic into narratives: vertical slices ordered from less to more
+functionality, each one complete and testable on its own. *Why:* a slice
+that can't ship alone can't be verified alone either.
+
+### 1.3 Stories from a narrative
+
+Grill the narrative into stories — behaviour only: what the user sees,
+edge cases, what counts as done; never the "how".
 
 - **A story states only the "what"**: who wants what, and a numbered list
-  of acceptance criteria. The current state of the code goes in the plan.
-  *Why:* a spec that describes code goes stale with the next refactor.
-- **Doubts are marked, not guessed.** Anything not yet clear is written as
-  a doubt marker (`[DOUBT: …]` by default) where it belongs. The functional
-  grill starts from them, and the validator refuses a story that leaves
-  `pending` with one left. *Why:* an agent that guesses fills gaps with
+  of acceptance criteria. *Why:* a spec that describes code goes stale with
+  the next refactor; the current state of the code goes in the plan.
+- **Doubts are marked, not guessed.** Anything not yet clear is a doubt
+  marker (`[DOUBT: …]` by default) where it belongs; the grill resolves
+  each one in the story. *Why:* an agent that guesses fills gaps with
   plausible inventions; a marker turns each gap into a question.
-- **With the narrative layer on**, narratives go from less to more
-  functionality and each one is a complete, independently testable slice.
-  *Why:* a slice that can't ship alone can't be verified alone either.
-- **Technical work is a technical story** (`kind: technical`) with no
-  narrative.
+- **Stories are immutable once implemented, and changes are incremental.**
+  A story that changes behaviour an implemented story describes says so
+  with a *supersedes* line naming the criterion and linking the earlier
+  story, and lists its **scenario delta**: the scenarios it adds (+),
+  changes (~) and removes (−). The earlier story is never edited.
+  *Why:* an implemented story is the record of what was asked then; the
+  current behaviour lives in the executable scenarios, never in prose that
+  can drift.
 - **Derived states are generated, never written by hand** (narrative and
   epic states, milestone tables). *Why:* a derived state written by hand
   drifts from what it is derived from.
-- Wire every new document into its index; the validator checks links,
-  navigation lines and index completeness ([context.md](context.md)).
 
-## 3. Per story, one at a time
+### 1.4 Scenarios
 
-Start each story in its own branch and worktree, from `main`. Everything
-below happens there. *Why:* several sessions can work in one repository at
-once; a shared working tree mixes their changes into each other's commits.
-
-### 3.1 Functional grill
-
-Grill the story — behaviour only: what the user sees, edge cases, what
-counts as done; never the "how". Start from its doubt markers; resolve each
-one in the story itself.
-
-**Stories are immutable once implemented, and changes are incremental.**
-If the story changes behaviour an earlier implemented story describes, it
-says so with a *supersedes* line naming the criterion and linking the
-earlier story, and lists its **scenario delta**: the scenarios it adds (+),
-changes (~) and removes (−) in the feature files. The earlier story is
-never edited; the validator generates the reverse "superseded by" table.
-*Why:* an implemented story is the record of what was asked then; editing
-it rewrites history instead of adding to it. The current behaviour lives in
-the executable scenarios, which the delta updates and the tests keep true —
-never in prose that can drift.
-
-### 3.2 Scenarios red
-
-Write the acceptance scenarios from the closed story, then run them once,
-red.
+Write the acceptance scenarios of the closed story — the executable form
+of its criteria — in the feature files, organized by capability, not by
+story. *Why:* they are the living spec, the place to read how the system
+behaves today; a story is the record of one change to it.
 
 - Every scenario carries a trace comment naming the criteria it covers
-  (`# ST-12: AC 1, 3` by default), and the story lists its feature files in
-  its frontmatter. The validator fails a criterion no scenario cites.
-- A scenario must fail because nothing implements the behaviour yet, not
-  because it doesn't parse. **A scenario that passes in red is not a
-  guard**: strengthen it until it fails for the right reason. *Why:* a
-  scenario that passes without the change can't tell before from after;
-  negative outcomes ("nothing is created") are the ones that most easily
-  pass empty.
-- Feature files are organized by capability, not by story. *Why:* they are
-  the living spec — the place to read how the system behaves today.
+  (`# ST-12: AC 1, 3` by default), and the story lists its feature files.
+  A criterion no scenario can check says why
+  (`(no scenario: …)`).
+- New scenarios are tagged **`@pending`**: they go to `main` long before
+  the code, and the runner skips them until the developer makes them pass.
+  *Why:* a spec merged ahead of its code must not turn the build red.
+- Write the delta's added (+) scenarios now; its changes (~) and removals
+  (−) touch scenarios that pass today, so the developer applies them in
+  delivery.
+- Don't run them: they are red by construction until delivery writes their
+  steps. Check they parse — the validator does.
 
-*Why after the grill:* scenarios written before the "what" is closed get
-rewritten by the grill, and the red run has to be repeated.
+### 1.5 Roadmap
 
-### 3.3 Plans
+The roadmap is a set of **milestones**, each with an objective in prose and
+the stories that deliver it ([artifacts.md](artifacts.md#roadmap)). Place
+the story in a milestone (`milestone:` in its frontmatter), regenerate the
+milestone tables (`sanchin roadmap --write`), and set the story **ready**.
+A milestone's state — planned, in progress, closed — is the product
+owner's call; only one is in progress at a time, and it closes when all its
+stories are implemented. Technical stories from the architect enter the
+roadmap the same way. Write the story's **Retro** section — what the
+refinement taught. *Why:* one roadmap is one queue: functional and
+technical work compete for the same time, and the order is decided in one
+place.
+
+Stop: the story is ready for `/sanchin:tech-lead`.
+
+## 2. Planning cycle
+
+`/sanchin:tech-lead`, on a ready story.
+
+### 2.1 Plans
 
 One plan per component the story touches (components come from the
 adapter), from the plan template: the technical "how" — current state of
 the code it touches, target design, constitution checklist, risks, ordered
-steps. The plans stay drafts, and the story stays pending, until the
-technical grill closes them (3.4).
+steps. The story links its plans.
 
 - **The contract between components** (endpoint, payload, ids) is written
   once, in the plan of the component that provides it; the consumer's plan
   links it. *Why:* a contract written twice diverges.
-- **Constitution checklist.** The plan answers every rule of the
-  project's constitution (the files the adapter lists): `n/a`, `ok`, or
-  `exception → D-n`, where `D-n` is the plan decision that justifies it.
-  *Why:* a free-text "layers and ADRs" section records only the rules the
-  author thought of; a checklist records that every rule was looked at.
+- **Constitution checklist.** The plan answers every rule of the project's
+  constitution that applies to it: `n/a`, `ok`, or `exception → D-n`,
+  where `D-n` is the plan decision that justifies it. *Why:* a free-text
+  "layers and ADRs" section records only the rules the author thought of;
+  a checklist records that every rule was looked at.
 - Where a design choice has more than one reasonable answer, write it as an
   open question with a recommendation instead of silently picking one.
 - A plan is the record of one change: it is never updated after its story
   is implemented. *Why:* the current state is the code and its tests; a
   plan kept "up to date" becomes a second, drifting description.
+- A design that contradicts a decision record in force, or needs a new
+  one, stops here and goes to `/sanchin:architect`. *Why:* a story plan is
+  the wrong place to change the architecture — its scope is one story.
 
-### 3.4 Technical grill
+### 2.2 Technical grill
 
-Grill the plans, technical side only. A functional question that shows up
-now goes back to the story, not into the plan. Research first — a fact
-found in the code routinely resolves what looked like a judgement call.
-With several plans, grill them together: the cross-component contract must
-be closed before any of them is implemented. Answers go to the plan's
-decisions section.
+Grill the plans, technical side only. Research first — a fact found in the
+code routinely resolves what looked like a judgement call. With several
+plans, grill them together: the cross-component contract must be closed
+before any of them is implemented. Answers go to each plan's decisions
+section; the open-questions section ends empty. A functional question that
+shows up goes back to the product owner (see [States](#states)).
 
-When every plan's open-questions section is empty, the story links its
-plans and goes **in progress**. From then on the validator holds the plans
-to the in-progress rules: required sections, no open question, a complete
-constitution checklist. *Why:* "in progress" means code may start; a state
-that allowed open questions would let code start on an undecided design.
-
-### 3.5 Cross-check before code
+### 2.3 Cross-check
 
 Dispatch one read-only sub-agent with the story, its feature files, all its
 plans and the decisions they cite, briefed with the reviewer's spec brief
 minus the code: criteria with no scenario, superseded criteria whose
 scenarios still assert the old behaviour, contract mismatches between
 plans, plan decisions that contradict a decision record in force. Findings
-go back to the story or the plan. *Why:* an inconsistency between spec
-artifacts is cheapest to fix before code depends on it.
+go back to the plan, or to the story through the product owner. *Why:* an
+inconsistency between spec artifacts is cheapest to fix before code
+depends on it.
 
-### 3.6 Green
+Write the planning retro in the plan's **Retro** section (*Planning*), set
+the story **planned**, and stop: it is ready for `/sanchin:developer`.
+
+## 3. Delivery cycle
+
+`/sanchin:developer`, on a planned story.
+
+### 3.1 Start
+
+Set the story **in progress** on `main` and commit just that, with the
+user's approval; then create the story's branch and worktree from it.
+Everything below happens in the worktree. *Why:* `main` says who holds
+which story — a story that still reads planned there gets picked up twice;
+and several sessions can work in one repository at once, so a shared
+working tree would mix their changes into each other's commits.
+
+### 3.2 Scenarios red
+
+Write the steps behind the story's scenarios and apply the delta's changes
+(~) and removals (−). Run the story's scenarios — including the
+`@pending` ones — once, red.
+
+- A scenario must fail because nothing implements the behaviour yet, not
+  because a step is missing or doesn't parse. **A scenario that passes in
+  red is not a guard**: strengthen it until it fails for the right reason.
+  *Why:* a scenario that passes without the change can't tell before from
+  after; negative outcomes ("nothing is created") are the ones that most
+  easily pass empty.
+- A scenario that can't be made to fail for the right reason is a spec
+  problem: back to the product owner.
+
+### 3.3 Green
 
 With several plans, each goes to its own sub-agent, in parallel, in a
 worktree branched from the story's branch, touching only its component;
@@ -178,6 +275,8 @@ acceptance scenarios there, since they cross components.
   yourself, applying each smell's general test, not the shape of its
   example. *Why:* copying a sibling copies its smells, and gates don't see
   design smells; the review is the second net, not the first.
+- **Follow the plan; record every deviation** in its Implementation
+  section. A deviation that changes the design goes back to the tech-lead.
 - **Run every local gate before calling it green** ([gates.md](gates.md)).
   *Why:* CI is the last net, not the first place a failure is seen.
 - **On any gate failure, diagnose before patching**: find the root cause
@@ -188,13 +287,13 @@ acceptance scenarios there, since they cross components.
   failure, go back to diagnosis. *Why:* patches layered on an unconfirmed
   diagnosis spiral away from the cause.
 
-### 3.7 Reviews
+### 3.4 Reviews
 
 Right after committing on the story's branch, `/sanchin:reviewer` over the
 diff from the branch point. `/mattpocock-skills:code-review` runs first as
-the generic outside view and the reviewer
-reports only what that review didn't. Every finding is written into the
-plan's review section with its **source** label.
+the generic outside view and the reviewer reports only what that review
+didn't. Every finding is written into the plan's review section with its
+**source** label.
 
 *Why the label:* it is the only way to know later what each review adds,
 and whether both are worth their cost ([improvement.md](improvement.md)).
@@ -204,15 +303,17 @@ that sentence — not "does it still pass" but "has this stopped being true".
 *Why:* a fix can touch a symptom next to the finding and leave every test
 green.
 
-### 3.8 Close, retro and merge
+### 3.5 Close, retro and merge
 
 Address real findings, re-run the gates and the scenarios the fix touches,
 and commit on the story's branch. In that same commit:
 
+- drop the `@pending` tag from the story's scenarios;
 - set the story to implemented, with its date (and close any issue it
   resolves);
-- regenerate the derived files and the superseded-by table;
-- write the plan's **Retro** section ([improvement.md](improvement.md)).
+- regenerate the milestone tables and the superseded-by table;
+- write the delivery retro in the plan's **Retro** section (*Delivery*,
+  [improvement.md](improvement.md)).
 
 Then, with the user's approval, integrate the story's branch the way the
 adapter's `merge` says ([adapter.md](adapter.md)):
@@ -223,16 +324,47 @@ adapter's `merge` says ([adapter.md](adapter.md)):
   story, its plans and the review findings with their outcome; check that
   CI actually passed on it, and stop — merging is the team's step. Remove
   the worktree once it is merged. A finding raised on the pull request is
-  fixed on the branch the same way as in 3.7, and counts as an escaped
+  fixed on the branch the same way as in 3.4, and counts as an escaped
   finding in the retro. *Why:* where `main` is protected or others review,
   the pull request is the team's gate; the local reviews feed it instead of
   replacing it.
 
-### 3.9 Prepare the next story and stop
+Stop. The next planned story, or the roadmap, is the user's choice.
 
-Draft the next story, with its doubt markers, and stop — hand back to the
-user before its functional grill. *Why:* the functional grill needs a
-human; continuing past it decides the "what" without them.
+## 4. Architecture cycle
+
+`/sanchin:architect`, on a technical idea: a refactor of the architecture,
+a new tool or dependency, a change to how components talk, or a design the
+tech-lead couldn't fit in the decisions in force.
+
+### 4.1 Technical grill
+
+Grill the idea with the user, technical side: the problem it solves, the
+decisions in force it touches, the alternatives and their trade-offs.
+Research first — read the decision records, the constitution, and the code
+only to check whether reality matches them.
+
+### 4.2 Decision record
+
+Write the decision as a draft record in the project's decisions directory,
+following an existing record's structure: context, decision, alternatives
+considered, consequences. A change to a decision in force is a new record
+that supersedes it, or a dated revision in it — the original is never
+rewritten. The user accepts it. *Why:* the decision record is the
+constitution's history; a decision left in the chat is lost to the next
+session, and one rewritten in place loses why it changed.
+
+### 4.3 Technical stories
+
+Break the work the decision implies into **technical stories**
+(`kind: technical`): what must be true when each is done, as numbered
+criteria, linking the decision. They need no scenarios and no narrative.
+Leave them pending, for the product owner to place in the roadmap and set
+ready. *Why:* technical work competes with features for the same time; one
+roadmap decides the order of both.
+
+Write the cycle's retro in the decision record's **Retro** section, and
+stop: the product owner places the stories.
 
 ## Bug lane
 
@@ -243,22 +375,23 @@ human; continuing past it decides the "what" without them.
    issue before touching code.
 3. **Regression scenario red**: a test that fails because of the bug.
 4. **Fix** to green, with the local gates.
-5. **Both reviews**, as in 3.7.
+5. **Both reviews**, as in 3.4.
 6. **Close**: the issue is marked resolved with what resolved it, in the
-   same commit; retro in the issue. Then integrate the branch as in 3.8
+   same commit; retro in the issue. Then integrate the branch as in 3.5
    (`merge: local` or `pr`).
 
-**Escalate to the full loop** when the fix changes behaviour the user sees,
-touches a cross-component contract, or needs a design decision. *Why:* at
-that point the bug is a story in disguise, and skipping the grills skips
-the user.
+**Escalate** when the fix changes behaviour the user sees, touches a
+cross-component contract, or needs a design decision: write a pending story
+linking the issue, and hand it to the product owner. *Why:* at that point
+the bug is a story in disguise, and skipping the cycles skips the user.
 
 ## Pacing
 
-- Inside a loop the user started, when a step finishes cleanly and the loop
-  defines the next one, proceed — don't ask "what next?". Stop only at the
-  loop's hard stops (3.9), at a decision only the user can make, and for
-  the approvals below. *Why:* starting the loop already gave the direction.
+- Inside a cycle the user started, when a step finishes cleanly and the
+  cycle defines the next one, proceed — don't ask "what next?". Stop at the
+  cycle's end, at a decision only the user can make, and for the approvals
+  below. *Why:* starting the cycle already gave the direction; ending it
+  hands the next decision back.
 - Put every judgement call to the user as selectable options, the
   recommended one first, each with its trade-off; never a prose list, and
   never only the recommendation. *Why:* the user picks faster than they
@@ -283,6 +416,9 @@ the user.
 - Commit with an explicit pathspec on `git commit` itself, and check
   `git show --stat HEAD` afterwards. *Why:* other sessions may have staged
   their own changes; a plain commit takes the whole index.
+- Product and planning artifacts (stories, scenarios tagged `@pending`,
+  plans, milestones, decision records) go to `main` as each cycle ends, with
+  the user's approval; delivery happens in the story's worktree.
 
 ## Non-negotiable boundaries
 

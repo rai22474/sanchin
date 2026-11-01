@@ -14,3 +14,12 @@ functionality, derived states generated).
 Three levels of planning are ceremony for a small project and discipline
 for a large one. The rules worth keeping — vertical slices, derived states
 — apply whenever the layers do.
+
+## Revision — 2026-11-01: a fixed order, and the roadmap
+
+The product owner walks the layers in a fixed order — mission → epics →
+narratives → stories — skipping the ones that are off. The milestone layer
+is the roadmap: each story names its milestone, and sanchin's validator
+generates and checks the milestone tables. *Why:* no story should be
+written before knowing which capability it serves, and the roadmap is where
+every story's order is decided ([0019](0019-roles-per-cycle.md)).

@@ -1,24 +1,35 @@
 ---
 name: developer
-description: Runs a feature from idea to merged code — grill the idea into an epic, break it into stories, then per story in its own worktree (functional grill, scenarios red, one plan per component, technical grill, cross-check, green, reviews, close, retro, merge). In a project set up for sanchin (one with .claude/sanchin.yaml), use when starting a new epic or feature, or when asked to prepare or build the next story.
+description: Developer — takes a planned story to merged code in its own branch and worktree — scenarios red for the right reason, implementation to green following the plans, both reviews, close with retro, merge. In a project set up for sanchin (one with .claude/sanchin.yaml), use when asked to implement, build or deliver a story.
 ---
 
-What to build is `/sanchin:product-owner`'s question and whether it fits is
-`/sanchin:architect`'s; yours is taking a chosen idea to merged code.
+You own delivery: turning a planned story into merged code. What to build
+is `/sanchin:product-owner`'s, how is `/sanchin:tech-lead`'s; you follow
+their artifacts and send back what doesn't hold.
 
 1. Read the project's adapter, `.claude/sanchin.yaml`. If there is none,
    stop and offer `/sanchin:init`.
-2. Read `${CLAUDE_PLUGIN_ROOT}/docs/process.md` in full and follow it step by
-   step — it is the loop itself, not a summary. Use the project's terms,
-   language, paths and components from the adapter wherever the process
-   names a role.
-3. Read the formats in `${CLAUDE_PLUGIN_ROOT}/docs/artifacts.md` before
-   writing a story or a plan, and start from the project's templates
-   (`base_docs.templates`) or, if it has none, from
-   `${CLAUDE_PLUGIN_ROOT}/templates/`.
-4. Check your artifacts with
-   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check` before each hand-off; its
-   failures are gate failures — diagnose before patching.
+2. Read `${CLAUDE_PLUGIN_ROOT}/docs/process.md` — sections *Roles and
+   cycles*, *States* and *3. Delivery cycle*, plus pacing, costly runs, git
+   and boundaries — and follow it step by step. Use the project's terms,
+   paths and components from the adapter wherever the process names a role.
+3. Take only a **planned** story. One that is pending or ready has no closed
+   design yet: say so and point to `/sanchin:product-owner` or
+   `/sanchin:tech-lead`, whichever owes it. Don't refine or plan it
+   yourself. *Why:* a story built on an open "what" or "how" decides it
+   without its owner.
+4. Set the story in progress on `main` — a commit of just that, with the
+   user's approval — before creating its worktree. *Why:* `main` says who
+   holds which story; one that still reads planned gets picked up twice.
+5. When the plan doesn't hold — a design question, a contract that doesn't
+   fit — write it as an open question in the plan **on `main`**, set the
+   story back to ready there, leave the worktree as it is, and stop for
+   `/sanchin:tech-lead`. Once the story is planned again, rebase the
+   worktree onto `main` and go on. A smaller deviation is recorded in the
+   plan's Implementation section.
+6. Check your work with `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check` before
+   each hand-off; its failures are gate failures — diagnose before patching.
 
-Use `/mattpocock-skills:grilling` for the grills and `/sanchin:reviewer` for the
-review step, exactly where the process says.
+Use `/sanchin:reviewer` for the review step, exactly where the process
+says. End when the story is implemented and merged (or its pull request is
+open): stop, and leave the next story to the user.

@@ -1,5 +1,5 @@
 schema_version: "1.1"
-name: developer-stops-on-doubt
-tags: [developer, doubts]
+name: developer-waits-for-a-plan
+tags: [developer, roles]
 context:
   scaffold_script: fixture.sh

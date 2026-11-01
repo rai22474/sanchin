@@ -26,3 +26,4 @@ record that supersedes it, never by editing it.
 | [0016](0016-general-whys.md) | Every rule carries a general why, never an anecdote |
 | [0017](0017-english.md) | sanchin is written in English |
 | [0018](0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review |
+| [0019](0019-roles-per-cycle.md) | Four cycles, one role each, and five story states |

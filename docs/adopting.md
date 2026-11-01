@@ -60,5 +60,9 @@ an agent's memory move the same way.
 
 ## 5. Use it on the next story
 
-The real test is the next story run with `/sanchin:developer`. Its retro is
-the first signal for both the project's adapter and sanchin itself.
+The real test is the next story taken through the cycles:
+`/sanchin:product-owner` to ready, `/sanchin:tech-lead` to planned,
+`/sanchin:developer` to implemented. A project adopting mid-flight can
+start where its story already is — a story with closed plans is planned.
+Its retro is the first signal for both the project's adapter and sanchin
+itself.
