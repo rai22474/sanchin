@@ -9,8 +9,10 @@
 # without the plugin. (A case's `plugins:` can't help: a plugin loaded from a
 # path is `@inline`, which doesn't satisfy the dependency, and the list
 # replaces the plugin under test.) So the suite runs against a copy of the
-# working tree with `dependencies` removed. Steps that call the dependency's
-# skills (grilling, the generic code review) run without them here.
+# working tree with `dependencies` removed. The grilling skill, which every
+# grill must invoke, is copied in from the installed dependency as
+# `sanchin:grilling`, and the copy's references point to it; the generic code
+# review runs without its skill here.
 set -euo pipefail
 
 root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
@@ -24,6 +26,14 @@ trap 'rm -rf "$work"' EXIT
 # The working tree as it is, uncommitted changes included, without ignored files.
 (cd "$root" && git ls-files -z --cached --others --exclude-standard | tar --null -T - -cf -) | tar -xf - -C "$work"
 jq 'del(.dependencies)' "$root/.claude-plugin/plugin.json" > "$work/.claude-plugin/plugin.json"
+
+grilling=$(ls -d "${CLAUDE_CONFIG_DIR:-$HOME/.claude}"/plugins/cache/*/mattpocock-skills/*/skills/productivity/grilling 2>/dev/null | sort -V | tail -1)
+if [ -n "$grilling" ]; then
+  mkdir -p "$work/skills/grilling" && cp -R "$grilling"/. "$work/skills/grilling/"
+  grep -rl 'mattpocock-skills:grilling' "$work/skills" "$work/docs" | xargs -r sed -i 's/mattpocock-skills:grilling/sanchin:grilling/g'
+else
+  echo "evals/run.sh: mattpocock-skills isn't installed; grill cases will fail (install it in Claude Code)" >&2
+fi
 
 # The default judge (haiku) misreads multi-part criteria — it failed reviews
 # that met every one — so the llm graders get a stronger judge unless the

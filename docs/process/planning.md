@@ -35,7 +35,8 @@ steps. The story links its plans.
 
 ## 2.2 Technical grill
 
-Grill the plans, technical side only. Research first — a fact found in the
+Grill the plans, technical side only, starting by invoking
+`mattpocock-skills:grilling` ([working-rules.md](working-rules.md#grills)). Research first — a fact found in the
 code routinely resolves what looked like a judgement call. With several
 plans, grill them together: the cross-component contract must be closed
 before any of them is implemented. Answers go to each plan's decisions

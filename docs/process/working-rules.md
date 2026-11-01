@@ -14,6 +14,24 @@
   never only the recommendation. *Why:* the user picks faster than they
   type, and needs the alternatives to judge the recommendation.
 
+## Grills
+
+- **Every grill starts with the Skill tool — `mattpocock-skills:grilling`
+  — before its first question**: the product owner's at each level, the
+  tech-lead's technical grill, the architect's. It is not optional, and
+  asking good questions without it is not running it. *Why:* the skill
+  holds the method — the design tree, the frontier asked whole in each
+  round and recomputed after every answer, facts looked up by sub-agents
+  instead of asked, and the end only when the frontier is empty and the
+  user confirms the shared understanding. A grill run from memory keeps the
+  questions and drops the parts that catch what nobody thought to ask.
+- **Format:** each round's questions go to the user as selectable options
+  (below, *Pacing*), the recommended answer first — that is the skill's
+  "recommended answer", in this process's format. The rest of the method is
+  the skill's.
+- If the skill isn't available, stop and tell the user the dependency
+  (`mattpocock-skills`) is missing. Don't grill without it.
+
 ## One session per cycle
 
 - Start each cycle — refinement, planning, delivery, architecture — in a

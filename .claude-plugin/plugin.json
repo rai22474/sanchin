@@ -1,7 +1,7 @@
 {
   "name": "sanchin",
   "displayName": "Sanchin",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "A reproducible, spec-first development process for Claude Code: executable specs, validated artifacts, deterministic gates and progressive context, run by eight role skills across four cycles: product, planning, delivery and architecture.",
   "author": {
     "name": "rai22474",

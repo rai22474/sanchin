@@ -27,7 +27,11 @@ build a ready story is `/sanchin:tech-lead`'s, building it is
    open issues, pending proposals, the roadmap, decision records. This skill
    holds none of its own. *Why:* principles copied into a skill go stale,
    and the work drifts from the product.
-3. Use `/mattpocock-skills:grilling` for every grill, at every level.
+3. **Every grill starts with the Skill tool: `mattpocock-skills:grilling`**,
+   before its first question — at every level: mission, epic, narrative,
+   story. Questions asked without it are not a grill; if the skill isn't
+   available, stop and say the dependency is missing
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#grills)).
 4. Hold every story to SMART and to the project's increment
    (`stories.increment`) during its grill — the table in the process's
    *1.3* — and don't set it ready until each letter holds. A story too big

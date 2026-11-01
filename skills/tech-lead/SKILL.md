@@ -35,9 +35,13 @@ it is `/sanchin:developer`'s.
 4. Read the code the story touches: the plan's current state cites it with
    `file:line`, and a fact in the code settles many questions before they
    reach the user.
-5. Use `/mattpocock-skills:grilling` for the technical grill, and the
-   reviewer's spec brief (`${CLAUDE_PLUGIN_ROOT}/skills/reviewer/SKILL.md`,
-   minus the code) for the cross-check sub-agent.
+5. **Every grill starts with the Skill tool: `mattpocock-skills:grilling`**,
+   before its first question — the technical grill. Questions asked without
+   it are not a grill; if the skill isn't available, stop and say the
+   dependency is missing
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#grills)).
+   Brief the cross-check sub-agent with the reviewer's spec brief
+   (`${CLAUDE_PLUGIN_ROOT}/skills/reviewer/SKILL.md`, minus the code).
 6. Check the story is still *achievable* and *time-bound* with the code in
    view: plans whose steps don't fit `stories.increment`, or a design the
    decisions in force don't allow, go back — to the product owner with the

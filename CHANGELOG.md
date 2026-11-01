@@ -5,6 +5,19 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.6 — 2026-11-01
+
+Grills run the grilling skill, not a memory of it.
+
+- Every grill — product owner, tech-lead, architect — starts with a Skill
+  tool call to `mattpocock-skills:grilling` before its first question; the
+  process's options format is how its rounds are put to the user. Without
+  the skill, the role stops and says the dependency is missing. In the
+  first story run under sanchin the grills were asked well but the skill
+  was never invoked.
+- Evals: the product-owner, tech-lead and architect grill cases now also
+  check that the grilling skill fired.
+
 ## 0.1.5 — 2026-11-01
 
 The coach's first two issues.

@@ -3,8 +3,9 @@
 [README](../../README.md) · [Docs](../index.md) · [Process](index.md)
 
 `/sanchin:product-owner`, from the mission down. Each level is grilled
-with the user — `/mattpocock-skills:grilling` — before the next is written
-from it. Dispatch research sub-agents for anything the repository can
+with the user — a grill that starts by invoking
+`mattpocock-skills:grilling` ([working-rules.md](working-rules.md#grills))
+— before the next is written from it. Dispatch research sub-agents for anything the repository can
 answer, in parallel with asking the user the genuine judgement calls.
 *Why:* the user's attention is the scarcest input; a question a search can
 answer wastes it.

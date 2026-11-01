@@ -29,7 +29,11 @@ roadmap. Don't write code.
    it should protect. A superseded decision is history, not a constraint;
    open issues and proposals in an area are its debt.
 3. Read code only to check whether reality matches the documents.
-4. Use `/mattpocock-skills:grilling` for the technical grill.
+4. **Every grill starts with the Skill tool: `mattpocock-skills:grilling`**,
+   before its first question — the technical grill. Questions asked without
+   it are not a grill; if the skill isn't available, stop and say the
+   dependency is missing
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#grills)).
 
 ## A technical idea → a decision → technical stories
 

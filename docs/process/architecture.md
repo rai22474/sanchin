@@ -8,7 +8,9 @@ tech-lead couldn't fit in the decisions in force.
 
 ## 4.1 Technical grill
 
-Grill the idea with the user, technical side: the problem it solves, the
+Grill the idea with the user — starting by invoking
+`mattpocock-skills:grilling` ([working-rules.md](working-rules.md#grills)) —
+technical side: the problem it solves, the
 decisions in force it touches, the alternatives and their trade-offs.
 Research first — read the decision records, the constitution, and the code
 only to check whether reality matches them.
