@@ -34,4 +34,5 @@ their artifacts and send back what doesn't hold.
 
 Use `/sanchin:reviewer` for the review step, exactly where the process
 says. End when the story is implemented and merged (or its pull request is
-open): stop, and leave the next story to the user.
+open): stop, and leave the next story to the user — in a fresh session
+(`/clear`).

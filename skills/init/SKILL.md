@@ -26,7 +26,8 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    use, turn the `milestone` layer on and fill `roadmap:` (directory, state
    line, state values); with feature files, set `scenarios.pending_tag` to
    the tag the runner already skips, or propose `@pending` and the runner
-   change that skips it.
+   change that skips it; and set `scenarios.run_pending` to the command
+   that runs those scenarios anyway (pytest: `-m pending`).
    Set `rules_since` to today; list plans of in-progress stories that predate
    the rules in `plans.legacy`, and in `stories.legacy` both implemented
    stories with no date and stories already in flight.

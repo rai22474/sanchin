@@ -39,7 +39,8 @@ it is `/sanchin:developer`'s.
    its failures are gate failures — diagnose before patching.
 8. End with the planning retro written in the plan and the story planned:
    say which plans you wrote and that `/sanchin:developer` takes it next.
-   Don't write code.
+   Don't write code. The next role starts in a fresh session
+   (`/clear`): it reads the artifacts, not this chat.
 
 When a functional question appears — the criteria don't say what should
 happen — don't answer it: write it into the story as a doubt marker, set the

@@ -5,6 +5,19 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.3 — 2026-11-01
+
+What the first story delivered under sanchin showed.
+
+- Delivery runs the `@pending` scenarios in red without dropping the tag —
+  through the new optional `scenarios.run_pending` adapter field or the
+  runner's tag filter — so no commit on a story's branch fails `check`.
+- The local gates run after committing on the story's branch: gates scoped
+  to what changed against `main` (mutation, for one) see only commits.
+- One session per cycle: each role hands over in a fresh session, since the
+  artifacts carry the handover and a session holding every cycle pays for
+  all of them on every call.
+
 ## 0.1.2 — 2026-11-01
 
 Approving the gates no longer needs a path the user can't find.

@@ -21,8 +21,10 @@ more it costs to find.
 
 ## Rules
 
-- **Run the local gates before calling a change green.** *Why:* CI is the
-  last net, not the first place a failure is seen.
+- **Run the local gates before calling a change green, after committing
+  it.** *Why:* CI is the last net, not the first place a failure is seen;
+  and a gate scoped to what changed against `main` sees only commits, so
+  over uncommitted work it passes without checking anything.
 - **Diagnose before patching** a gate failure ([process/delivery.md](process/delivery.md#33-green)).
 - **Reviewers skip what gates enforce**, and their brief says which gates
   exist. *Why:* a reviewer repeating a linter spends attention a linter

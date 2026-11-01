@@ -33,7 +33,8 @@ build a ready story is `/sanchin:tech-lead`'s, building it is
    are gate failures — diagnose before patching.
 6. End when the stories you worked on are ready and placed, each with its
    Retro section written: say which, and that `/sanchin:tech-lead` takes
-   them next. Don't plan or build them.
+   them next. Don't plan or build them. The next role starts in a fresh session
+   (`/clear`): it reads the artifacts, not this chat.
 
 ## Deciding what comes next
 

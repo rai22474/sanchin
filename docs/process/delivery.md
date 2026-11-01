@@ -19,6 +19,13 @@ Write the steps behind the story's scenarios and apply the delta's changes
 (~) and removals (−). Run the story's scenarios — including the
 `@pending` ones — once, red.
 
+- **Run the `@pending` scenarios without dropping the tag**: with the
+  adapter's `scenarios.run_pending` command, or by overriding the runner's
+  tag filter (pytest: `-m pending`, which wins over `-m 'not pending'` in
+  `addopts`). The tag comes off only in the close commit (§3.5). *Why:*
+  dropping it earlier leaves commits on the branch where `check` fails,
+  and a branch whose history is red can't be bisected.
+
 - A scenario must fail because nothing implements the behaviour yet, not
   because a step is missing or doesn't parse. **A scenario that passes in
   red is not a guard**: strengthen it until it fails for the right reason.
@@ -45,8 +52,12 @@ acceptance scenarios there, since they cross components.
   design smells; the review is the second net, not the first.
 - **Follow the plan; record every deviation** in its Implementation
   section. A deviation that changes the design goes back to the tech-lead.
-- **Run every local gate before calling it green** ([gates.md](../gates.md)).
-  *Why:* CI is the last net, not the first place a failure is seen.
+- **Run every local gate before calling it green** ([gates.md](../gates.md)),
+  **after committing on the story's branch**: `scripts/sanchin git-hook
+  pre-push` and the project's own gate script, over the commit. *Why:* CI
+  is the last net, not the first place a failure is seen; and some gates
+  (mutation, anything scoped by `git diff` against `main`) see only what is
+  committed, so a run over uncommitted work passes without checking it.
 - **On any gate failure, diagnose before patching**: find the root cause
   and state it (what failed, the real cause, the proposed fix) before
   touching code. A mechanical, unambiguous fix (a typo, a name collision)

@@ -14,6 +14,15 @@
   never only the recommendation. *Why:* the user picks faster than they
   type, and needs the alternatives to judge the recommendation.
 
+## One session per cycle
+
+- Start each cycle — refinement, planning, delivery, architecture — in a
+  fresh session (`/clear`, or a new one). *Why:* the roles hand over through
+  artifacts on `main`, not through the chat; a session that carries the
+  earlier cycles re-reads all of them on every call, paying for context the
+  next role doesn't use and letting a decision made in chat stand in for
+  one that should be in the artifact.
+
 ## Long and costly runs
 
 - Ask before entering a fix cycle around a costly suite (containers, paid

@@ -71,6 +71,7 @@ scenarios:
   globs: ['{component}/tests/features/**/*.feature']
   trace_comment: '^\s*#\s*(?P<story>ST-\d+):\s*AC\s+(?P<criteria>\d+(?:,\s*\d+)*)\s*$'
   pending_tag: '@pending'      # on scenarios written ahead of their code; '' turns the rule off
+  run_pending: 'uv run pytest -m pending {file}'   # optional: how the developer runs them in red
 
 roadmap:                       # with the milestone layer on
   directory: docs/roadmap/milestones
@@ -114,7 +115,7 @@ gates:
 | `docs.*` | validator | Progressive-context rules ([context.md](context.md)). |
 | `stories.*` | validator, skills | Story rules ([artifacts/story.md](artifacts/story.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists stories (paths from the project root) that predate the rules — implemented ones that may lack a date, and ones already in flight when the project adopted sanchin, which may lack scenarios. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process/product.md](process/product.md#13-stories-from-a-narrative)). |
 | `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process/states.md](process/states.md#states)). Values must differ. |
-| `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. |
+| `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. `run_pending` (optional, read by the developer) is the command that runs them anyway, for the red run; without it the developer overrides the runner's tag filter. |
 | `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts/layers-and-roadmap.md](artifacts/layers-and-roadmap.md#roadmap)). |
 | `acceptance.*` | developer, maintainer | How to run acceptance scenarios, and whether a run is costly. |
 | `plans.*` | validator | Plan rules ([artifacts/plan.md](artifacts/plan.md#plan)). In `constitution.globs`, `{component}` expands to the plan's own component — the first component named in the plan's path — so a plan answers the global rules plus its component's; a plan whose path names no component answers every component's. |
