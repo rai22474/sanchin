@@ -48,6 +48,7 @@ As a <user>, I want <capability>, so that <value>.
 | Every citation names an existing story and criterion. | validator |
 | A supersedes link points to an existing story; the superseded-by table is up to date. | validator |
 | Scenario delta matches the feature files: pending, `~` and `−` exist; ready on, `+` too; implemented, `+` and `~` exist and `−` is gone. | validator |
+| A delta's `+` scenarios (ready on) and `~` scenarios (implemented) carry this story's trace; a rename says `(no trace: …)` on its line. | validator |
 | The story says only the "what": no code, no current state. | review |
 | The story is SMART — specific, measurable, achievable, relevant, time-bound (fits `stories.increment`) — [process/product.md](../process/product.md#13-stories-from-a-narrative). | product owner at ready; tech-lead re-checks A and T against the plans |
 | An implemented story, and its plans, are never edited after the commit that set it implemented (skipped without git, for `stories.legacy`, and while the close isn't committed). | validator |

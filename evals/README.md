@@ -34,6 +34,7 @@ skill, and keep every case green ([improvement.md](../docs/improvement.md)).
 | Case | Rule it guards |
 |---|---|
 | product-owner-asks-the-doubt | Refining asks a doubt marker, doesn't guess it, and keeps the story pending until it's answered. |
+| product-owner-scenario-fails-today | A negative criterion about a page that doesn't exist yet gets a scenario that fails today: it establishes its subject before checking absence. |
 | developer-without-adapter-offers-init | No adapter → offer init, don't guess a layout. |
 | architect-quotes-the-vision | Principles come from the project's vision, not the skill. |
 | product-owner-writes-only-after-confirming | Advisory skills write drafts only after confirmation. |

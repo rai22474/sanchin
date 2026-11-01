@@ -22,4 +22,6 @@ Feature: export
 | Each scenario covering a criterion carries the trace comment above it; a trace comment not above a scenario is an error. | validator |
 | Every feature file parses as Gherkin. | validator |
 | A scenario whose stories are all unimplemented is tagged `@pending` (on itself, its rule or its feature); one covering an implemented story isn't. The runner skips the tag. | validator |
+| A scenario the story's delta adds (`+`, once ready) or changes (`~`, once implemented) carries that story's trace, unless its delta line says `(no trace: …)` (a rename). | validator |
+| Each scenario fails on the code as it was before the story; a negative one first establishes that its subject exists. | product owner, cross-check |
 | Red for the right reason before the code exists. | developer, review |

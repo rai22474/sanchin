@@ -5,6 +5,19 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.5 — 2026-11-01
+
+The coach's first two issues.
+
+- Validator: a scenario a story's delta adds (`+`, once ready) or changes
+  (`~`, once implemented) must carry that story's trace; a rename says
+  `(no trace: …)` on its delta line (`stories.delta_trace_exemption`).
+  Closes #1.
+- Product owner: each scenario fails on today's code, and a negative one
+  first establishes its subject; the tech-lead's cross-check looks for
+  scenarios that would pass today and for implemented scenarios that
+  contradict the story outside its delta. Closes #2.
+
 ## 0.1.4 — 2026-11-01
 
 Configurable cost per role.

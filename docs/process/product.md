@@ -126,6 +126,15 @@ behaves today; a story is the record of one change to it.
 - Write the delta's added (+) scenarios now; its changes (~) and removals
   (−) touch scenarios that pass today, so the developer applies them in
   delivery.
+- **Each scenario fails on today's code.** Before writing one down, know
+  why it is red now; a negative one ("no section X", "as many commits as
+  before") first establishes that its subject exists — a step that creates
+  it, or one that asserts it is there. *Why:* a negative outcome passes
+  empty when its precondition doesn't exist yet, and a scenario that passes
+  before the story can't tell before from after; caught at delivery's red
+  run, it is already on `main` and comes back to you.
+- A scenario the delta adds (+) or changes (~) carries this story's trace —
+  a changed scenario now asserts this story's criterion.
 - Don't run them: they are red by construction until delivery writes their
   steps. Check they parse — the validator does.
 

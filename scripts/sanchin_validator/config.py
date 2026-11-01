@@ -46,6 +46,7 @@ class StoriesConfig:
     states: dict[str, str]
     criteria_heading: str
     criterion_exemption: str
+    delta_trace_exemption: str
     doubt_marker: str
     supersedes_pattern: str
     superseded_index: Path | None
@@ -208,6 +209,7 @@ def _stories_config(project_root: Path, raw: dict) -> StoriesConfig:
         states=_states(raw.get("states", {})),
         criteria_heading=raw.get("criteria_heading", "Acceptance criteria"),
         criterion_exemption=raw.get("criterion_exemption", "(no scenario:"),
+        delta_trace_exemption=raw.get("delta_trace_exemption", "(no trace:"),
         doubt_marker=raw.get("doubt_marker", "[DOUBT:"),
         supersedes_pattern=raw.get("supersedes_pattern", r"\*\*Supersedes:\*\*[^\n]*?\]\(([^)\s]+)\)"),
         superseded_index=project_root / superseded_index if superseded_index else None,

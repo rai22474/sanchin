@@ -63,6 +63,7 @@ stories:
   supersedes_pattern: '\*\*Supersedes:\*\*[^\n]*?\]\(([^)\s]+)\)'
   superseded_index: docs/stories/superseded.md
   delta_heading: Scenario delta
+  delta_trace_exemption: '(no trace:'   # on a delta line: a changed scenario that only renames
   rules_since: '2026-11-01'
   legacy: []                   # stories that predate the rules: closed, or in flight at adoption
   increment: 2 days            # how long a story may take from ready to merged (SMART: time-bound)

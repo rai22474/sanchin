@@ -356,6 +356,35 @@ class ValidatorTest(unittest.TestCase):
         self.project.write("docs/stories/story-1.md", story("ST-1", "ready", body=delta))
         self.assertTrue(any("'brand new' should exist" in error for error in self.errors("stories")))
 
+    def test_changed_scenario_needs_the_trace_of_the_story_that_changed_it(self):
+        # ST-2 changed a scenario ST-1 wrote; the scenario still names only ST-1.
+        self.project.write("app/features/thing.feature", FEATURE.replace("  @pending\n", ""))
+        self.project.write("docs/plans/p.md", PLAN_IMPLEMENTED)
+        extra = "date: 2025-01-01\nplan: docs/plans/p.md\n"
+        self.project.write("docs/stories/story-1.md", story("ST-1", "implemented", extra))
+        delta = "\n## Scenario delta\n\n- ~ app/features/thing.feature: first thing happens\n"
+        self.project.write("docs/stories/story-2.md", story("ST-2", "implemented", extra, delta))
+        self.assertTrue(any("has no ST-2 trace comment" in error for error in self.errors("stories")))
+        self.project.write("app/features/thing.feature", FEATURE.replace("  @pending\n", "  # ST-2: AC 1\n"))
+        self.assertFalse(any("trace comment" in error for error in self.errors("stories")))
+
+    def test_a_renaming_change_can_be_exempted_from_the_trace(self):
+        self.project.write("app/features/thing.feature", FEATURE.replace("  @pending\n", ""))
+        self.project.write("docs/plans/p.md", PLAN_IMPLEMENTED)
+        extra = "date: 2025-01-01\nplan: docs/plans/p.md\n"
+        self.project.write("docs/stories/story-1.md", story("ST-1", "implemented", extra))
+        delta = "\n## Scenario delta\n\n- ~ app/features/thing.feature: first thing happens (no trace: renamed only)\n"
+        self.project.write("docs/stories/story-2.md", story("ST-2", "implemented", extra, delta))
+        errors = self.errors("stories")
+        self.assertFalse(any("trace comment" in error or "should exist" in error for error in errors), errors)
+
+    def test_added_scenario_needs_its_story_trace_once_ready(self):
+        delta = "\n## Scenario delta\n\n- + app/features/thing.feature: first thing happens\n"
+        self.project.write("docs/stories/story-2.md", story("ST-2", "ready", body=delta))
+        self.assertTrue(any("has no ST-2 trace comment" in error for error in self.errors("stories")))
+        self.project.write("docs/stories/story-2.md", story("ST-2", "pending", body=delta))
+        self.assertFalse(any("trace comment" in error for error in self.errors("stories")))
+
     # --- roadmap -------------------------------------------------------------
 
     def use_milestones(self):

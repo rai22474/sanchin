@@ -65,7 +65,45 @@ def check_stories(config: Config, stories: list[Story], citations: list[Citation
         errors.extend(f"{story.path}: {problem}" for problem in _story_problems(config, story))
     errors.extend(_duplicate_id_problems(config, stories))
     errors.extend(_citation_problems(config, stories, citations))
+    errors.extend(_delta_trace_problems(config, stories, citations))
     return errors
+
+
+def _delta_lines(config: Config, story: Story):
+    """(operation, feature path as written, scenario name, exempt from the trace rule)."""
+    body = section(story.text, config.stories.delta_heading)
+    if body is None:
+        return
+    exemption = config.stories.delta_trace_exemption
+    for match in _DELTA_LINE.finditer(body):
+        scenario = match.group("scenario")
+        exempt = bool(exemption) and exemption in scenario
+        if exempt:
+            scenario = scenario[: scenario.index(exemption)].rstrip()
+        yield match.group("op"), match.group("feature"), scenario, exempt
+
+
+def _delta_trace_problems(config: Config, stories: list[Story], citations: list[Citation]) -> list[str]:
+    """A scenario a story adds (+, once ready) or changes (~, once
+    implemented) asserts that story's criteria, so it carries its trace."""
+    keys = config.stories
+    cited = {(citation.story_id, citation.feature.resolve(), citation.scenario.name) for citation in citations}
+    problems = []
+    for story in stories:
+        if is_legacy(config, story):
+            continue
+        story_id = story.get(keys.id_key)
+        implemented = state_name(config, story) == "implemented"
+        for operation, feature, scenario, exempt in _delta_lines(config, story):
+            due = (operation == "+" and at_least(config, story, "ready")) or (operation == "~" and implemented)
+            if not due or exempt:
+                continue
+            if (story_id, (config.project_root / feature).resolve(), scenario) not in cited:
+                problems.append(
+                    f"{story.path}: scenario delta {operation} {feature}: {scenario!r} has no {story_id} trace comment "
+                    f"(a changed scenario that only renames can say {keys.delta_trace_exemption!r} on its delta line)"
+                )
+    return problems
 
 
 def _duplicate_id_problems(config: Config, stories: list[Story]) -> list[str]:
@@ -216,15 +254,11 @@ def _delta_problems(config: Config, story: Story) -> list[str]:
     """Pending: what it changes or removes exists. Refined: what it adds is
     written too (tagged pending). Implemented: added and changed exist,
     removed are gone."""
-    body = section(story.text, config.stories.delta_heading)
-    if body is None:
-        return []
     implemented = state_name(config, story) == "implemented"
     refined = at_least(config, story, "ready")
     problems = []
-    for match in _DELTA_LINE.finditer(body):
-        operation, scenario = match.group("op"), match.group("scenario")
-        feature = config.project_root / match.group("feature")
+    for operation, written_feature, scenario, _exempt in _delta_lines(config, story):
+        feature = config.project_root / written_feature
         present = scenario in scenario_names(feature)
         if implemented:
             expected_present = operation in "+~"
@@ -234,7 +268,7 @@ def _delta_problems(config: Config, story: Story) -> list[str]:
             expected_present = True
         if present != expected_present:
             state = "should exist" if expected_present else "should be gone"
-            problems.append(f"scenario delta {operation} {match.group('feature')}: {scenario!r} {state}")
+            problems.append(f"scenario delta {operation} {written_feature}: {scenario!r} {state}")
     return problems
 
 

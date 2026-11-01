@@ -56,7 +56,7 @@ the skills call the plugin's copy directly, at
 | stories | No doubt marker after `pending`. |
 | stories | Citations name existing stories and criteria; a trace comment counts only above a scenario (tags and comments may sit between); implemented-since-`rules_since` stories have every criterion cited unless exempted. |
 | stories | Supersedes links resolve; the superseded-by table is current. |
-| stories | Scenario delta matches the feature files for the story's state. |
+| stories | Scenario delta matches the feature files for the story's state; a `+` scenario (ready on) and a `~` one (implemented) carry the story's trace, unless the delta line says `(no trace: …)`; `stories.legacy` skipped. |
 | stories | An implemented story and its plans are unchanged since the first commit where the story reads implemented (needs git and that commit in the history; `stories.legacy` skipped). |
 | plans | Required sections per state; open questions closed; constitution checklist complete, exceptions justified; `legacy` plans skipped. |
 

@@ -46,8 +46,11 @@ shows up goes back to the product owner (see [States](states.md#states)).
 
 Dispatch one read-only sub-agent with the story, its feature files, all its
 plans and the decisions they cite, briefed with the reviewer's spec brief
-minus the code: criteria with no scenario, superseded criteria whose
-scenarios still assert the old behaviour, contract mismatches between
+minus the code: criteria with no scenario, scenarios that would pass on
+today's code (above all negative ones whose subject doesn't exist yet),
+superseded criteria whose scenarios still assert the old behaviour, an
+implemented scenario that contradicts the story and isn't in its delta,
+contract mismatches between
 plans, plan decisions that contradict a decision record in force. Findings
 go back to the plan, or to the story through the product owner. *Why:* an
 inconsistency between spec artifacts is cheapest to fix before code
