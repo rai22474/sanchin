@@ -33,7 +33,8 @@ can tell.
 ## 3. Dispatch, in parallel
 
 One **Standards** sub-agent per touched component, one **Spec** sub-agent
-for the story. Each gets the generic review's findings with the rule: *do
+for the story, each with `model: <models.reviewer>` from the adapter unless
+it is `inherit` or unset. Each gets the generic review's findings with the rule: *do
 not report anything already reported; contest a finding only when a project
 standard overrides it, naming which.*
 

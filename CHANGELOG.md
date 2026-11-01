@@ -5,6 +5,17 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.4 — 2026-11-01
+
+Configurable cost per role.
+
+- `models` in the adapter: a model per role. A role's sub-agents run on it
+  (cross-check, parallel plans, reviewers); the role itself, on starting,
+  asks to switch with `/model` when the session runs another.
+- One session per cycle, enforced: a `UserPromptSubmit` hook blocks a
+  role's skill in a session another role already used, with a reminder to
+  `/clear`. `session.fresh_per_cycle: warn | off` relaxes it.
+
 ## 0.1.3 — 2026-11-01
 
 What the first story delivered under sanchin showed.

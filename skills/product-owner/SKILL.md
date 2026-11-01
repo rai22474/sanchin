@@ -15,6 +15,13 @@ build a ready story is `/sanchin:tech-lead`'s, building it is
    `artifacts/scenarios.md`, `artifacts/layers-and-roadmap.md`. *Why:* the
    rest of the process is other roles'; loading it costs context and
    invites doing their work.
+
+   **Model.** If the adapter's `models.product_owner` names a model other than the
+   one you run on, say so in one line and ask, as options, whether to go on
+   or stop so the user can run `/model <that model>`. Every sub-agent you
+   dispatch gets `model: <models.product_owner>` unless it is `inherit` or unset
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
+
 2. Read the product's principles every time from the documents the adapter
    points to (`base_docs`): mission and vision (and component visions),
    open issues, pending proposals, the roadmap, decision records. This skill

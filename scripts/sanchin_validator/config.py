@@ -94,6 +94,11 @@ class Gate:
 
 GATE_LEVELS = ("edit", "pre-commit", "pre-push", "ci")
 MERGE_MODES = ("local", "pr")
+# Roles that may name a model (docs/adapter.md#models), and the values the
+# Agent tool and /model accept; `inherit` keeps the session's model.
+MODEL_ROLES = ("product_owner", "tech_lead", "developer", "architect", "maintainer", "reviewer", "coach")
+MODEL_VALUES = ("inherit", "opus", "sonnet", "haiku", "fable")
+FRESH_PER_CYCLE_MODES = ("block", "warn", "off")
 
 
 @dataclass(frozen=True)
@@ -109,6 +114,8 @@ class Config:
     plans: PlansConfig
     roadmap: "RoadmapConfig | None" = None
     gates: tuple[Gate, ...] = field(default_factory=tuple)
+    models: dict[str, str] = field(default_factory=dict)
+    fresh_per_cycle: str = "block"
 
 
 def load_config(project_root: Path, adapter_file: Path | None = None) -> Config:
@@ -137,7 +144,29 @@ def build_config(project_root: Path, raw: dict) -> Config:
         plans=_plans_config(project_root, _section(raw, "plans"), components),
         roadmap=_roadmap_config(project_root, raw),
         gates=tuple(_gate(entry) for entry in raw.get("gates", [])),
+        models=_models(_optional_section(raw, "models")),
+        fresh_per_cycle=_fresh_per_cycle(_optional_section(raw, "session")),
     )
+
+
+def _models(raw: dict) -> dict[str, str]:
+    unknown = set(raw) - set(MODEL_ROLES)
+    if unknown:
+        raise AdapterError(f"models has unknown roles {sorted(unknown)}; allowed: {list(MODEL_ROLES)}")
+    for role, model in raw.items():
+        if model not in MODEL_VALUES:
+            raise AdapterError(f"models.{role} is {model!r}; allowed: {list(MODEL_VALUES)}")
+    return {role: str(model) for role, model in raw.items()}
+
+
+def _fresh_per_cycle(raw: dict) -> str:
+    unknown = set(raw) - {"fresh_per_cycle"}
+    if unknown:
+        raise AdapterError(f"session has unknown keys {sorted(unknown)}; allowed: ['fresh_per_cycle']")
+    mode = raw.get("fresh_per_cycle", "block")
+    if mode not in FRESH_PER_CYCLE_MODES:
+        raise AdapterError(f"session.fresh_per_cycle is {mode!r}; allowed: {list(FRESH_PER_CYCLE_MODES)}")
+    return mode
 
 
 def expand_components(patterns, components: tuple[str, ...]) -> tuple[str, ...]:
@@ -259,6 +288,13 @@ def _roadmap_config(project_root: Path, raw: dict) -> RoadmapConfig | None:
         state_pattern=section.get("state_pattern", r"^\*\*State:\*\*\s*(?P<state>[^.\n]+?)\s*\.?\s*$"),
         states=_named_values("roadmap.states", section.get("states", {}), MILESTONE_STATES),
     )
+
+
+def _optional_section(raw: dict, name: str) -> dict:
+    section = raw.get(name) or {}
+    if not isinstance(section, dict):
+        raise AdapterError(f"adapter section {name!r} must be a mapping")
+    return section
 
 
 def _section(raw: dict, name: str) -> dict:

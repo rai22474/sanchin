@@ -25,6 +25,7 @@ scripts/sanchin gates --level pre-push FILE…   # run the project's gates of on
 scripts/sanchin git-hook pre-commit|pre-push   # body of a git hook (gates.md#git-hooks)
 scripts/sanchin trust                    # approve the adapter's gates for the hook (gates.md#trust)
 scripts/sanchin hook                     # PostToolUse entry point (stdin payload)
+scripts/sanchin prompt-hook              # UserPromptSubmit entry point: one session per role cycle
 ```
 
 Global options: `--project DIR` (default: current directory) and

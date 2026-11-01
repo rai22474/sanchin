@@ -12,6 +12,17 @@
           }
         ]
       }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "[ -f \"${CLAUDE_PROJECT_DIR}/.claude/sanchin.yaml\" ] || exit 0; payload=$(cat); case \"$payload\" in */sanchin:*) printf '%s' \"$payload\" | \"${CLAUDE_PLUGIN_ROOT}\"/scripts/sanchin --project \"${CLAUDE_PROJECT_DIR}\" prompt-hook ;; esac",
+            "timeout": 30
+          }
+        ]
+      }
     ]
   }
 }

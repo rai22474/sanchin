@@ -6,6 +6,12 @@ description: Aggregates the retros of closed stories and bug fixes, finds the si
 Read `${CLAUDE_PLUGIN_ROOT}/docs/improvement.md` first: it defines the
 signals, the retro and the rule of two.
 
+**Model.** If the adapter's `models.coach` names a model other than the
+one you run on, say so in one line and ask, as options, whether to go on
+or stop so the user can run `/model <that model>`. Every sub-agent you
+dispatch gets `model: <models.coach>` unless it is `inherit` or unset
+([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
+
 1. **Collect** the Retro sections written since the last coach run (the
    last run's date is in the project's process log, or ask) — stories
    (product), plans (planning and delivery), decision records

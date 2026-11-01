@@ -7,6 +7,13 @@ description: Fixes a known bug through the short lane — the issue is the spec,
    offer `/sanchin:init`). Then read only these:
    `${CLAUDE_PLUGIN_ROOT}/docs/process/bug-lane.md`, `process/working-rules.md`,
    and `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/issue.md`.
+
+   **Model.** If the adapter's `models.maintainer` names a model other than the
+   one you run on, say so in one line and ask, as options, whether to go on
+   or stop so the user can run `/model <that model>`. Every sub-agent you
+   dispatch gets `model: <models.maintainer>` unless it is `inherit` or unset
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
+
 2. Find or create the issue where the adapter keeps issues
    (`base_docs.issues`), following an existing issue's structure.
 3. Follow the lane in order. Write the root cause in the issue before

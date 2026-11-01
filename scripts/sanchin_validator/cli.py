@@ -1,4 +1,4 @@
-"""Command line: `sanchin check`, `roadmap`, `superseded`, `gates`, `git-hook`, `trust`, `hook`.
+"""Command line: `sanchin check`, `roadmap`, `superseded`, `gates`, `git-hook`, `trust`, `hook`, `prompt-hook`.
 
 Run it through `scripts/sanchin`, which finds a Python with PyYAML.
 Reference: docs/validator.md.
@@ -6,6 +6,7 @@ Reference: docs/validator.md.
 
 import argparse
 import json
+import re
 import shlex
 import subprocess
 import sys
@@ -29,8 +30,8 @@ CHECKS = ("docs", "stories", "plans")
 def main(argv: list[str] | None = None) -> int:
     parser = _parser()
     arguments = parser.parse_args(argv)
-    if arguments.handler is run_hook:
-        return run_hook(arguments)
+    if arguments.handler in (run_hook, run_prompt_hook):
+        return arguments.handler(arguments)
     project_root = Path(arguments.project).resolve()
     try:
         config = load_config(project_root, Path(arguments.adapter).resolve() if arguments.adapter else None)
@@ -164,6 +165,71 @@ def run_hook(arguments) -> int:
     if output:
         print(json.dumps(output))
     return 0
+
+
+# The roles that run a cycle of their own (docs/process/working-rules.md#one-session-per-cycle).
+CYCLE_ROLES = ("product-owner", "tech-lead", "developer", "architect", "maintainer", "coach")
+ROLE_COMMAND = re.compile(r"^\s*/sanchin:(?P<role>[a-z-]+)\b")
+RAN_ROLE = re.compile(r"<command-name>/sanchin:(?P<role>[a-z-]+)</command-name>")
+
+
+def run_prompt_hook(arguments) -> int:
+    """UserPromptSubmit hook: a role's cycle starts in a session no other role has used.
+
+    Roles hand over through artifacts, not the chat; a session that carries
+    an earlier cycle re-reads it on every call. The adapter's
+    `session.fresh_per_cycle` says whether to block the prompt, warn, or
+    stay silent.
+    """
+    payload = json.load(sys.stdin)
+    match = ROLE_COMMAND.match(payload.get("prompt") or "")
+    if not match or match.group("role") not in CYCLE_ROLES:
+        return 0
+    role = match.group("role")
+    earlier = _roles_in_transcript(payload.get("transcript_path"))
+    others = sorted(set(earlier) - {role})
+    if not others:
+        return 0
+    cwd = Path(payload.get("cwd") or arguments.project).resolve()
+    project_root = _working_tree(cwd / "prompt") or Path(arguments.project).resolve()
+    try:
+        mode = load_config(project_root).fresh_per_cycle
+    except AdapterError:
+        return 0
+    message = (
+        f"sanchin: this session already ran /sanchin:{', /sanchin:'.join(others)}. "
+        f"Start /sanchin:{role} in a fresh session — run /clear, then the command again. "
+        "Roles hand over through the artifacts on main, not the chat, and a session "
+        "that carries earlier cycles pays for them on every call "
+        "(session.fresh_per_cycle in .claude/sanchin.yaml: block | warn | off)."
+    )
+    if mode == "block":
+        print(json.dumps({"decision": "block", "reason": message}))
+    elif mode == "warn":
+        print(json.dumps({"hookSpecificOutput": {
+            "hookEventName": "UserPromptSubmit",
+            "additionalContext": "Before anything else, tell the user, in one line: " + message,
+        }}))
+    return 0
+
+
+def _roles_in_transcript(transcript_path: str | None) -> list[str]:
+    """The /sanchin: roles the user invoked earlier in this session."""
+    if not transcript_path or not Path(transcript_path).is_file():
+        return []
+    roles = []
+    for line in Path(transcript_path).read_text(encoding="utf-8", errors="replace").splitlines():
+        try:
+            entry = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        if entry.get("type") != "user":
+            continue
+        content = (entry.get("message") or {}).get("content")
+        texts = [content] if isinstance(content, str) else [part.get("text", "") for part in content or [] if isinstance(part, dict)]
+        for text in texts:
+            roles.extend(found.group("role") for found in RAN_ROLE.finditer(text or "") if found.group("role") in CYCLE_ROLES)
+    return roles
 
 
 ZERO_SHA = "0" * 40
@@ -302,4 +368,7 @@ def _parser() -> argparse.ArgumentParser:
 
     hook = commands.add_parser("hook", help="PostToolUse hook entry point (reads the hook payload on stdin)")
     hook.set_defaults(handler=run_hook)
+
+    prompt_hook = commands.add_parser("prompt-hook", help="UserPromptSubmit hook entry point: one session per role cycle")
+    prompt_hook.set_defaults(handler=run_prompt_hook)
     return parser

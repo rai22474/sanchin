@@ -22,6 +22,26 @@
   earlier cycles re-reads all of them on every call, paying for context the
   next role doesn't use and letting a decision made in chat stand in for
   one that should be in the artifact.
+- The plugin's prompt hook enforces it: invoking a role's skill in a
+  session where another role's skill already ran is blocked with a reminder
+  to `/clear` (the reviewer, `/sanchin:init` and `/sanchin:trust` are not
+  cycles and pass). The adapter's `session.fresh_per_cycle` turns it to a
+  warning (`warn`) or off (`off`).
+
+## Models
+
+- The adapter's `models` names a model per role (`product_owner`,
+  `tech_lead`, `developer`, `architect`, `maintainer`, `reviewer`, `coach`):
+  `opus`, `sonnet`, `haiku`, `fable` or `inherit` (the default: the
+  session's model).
+- **Sub-agents** a role dispatches run on that role's model; the reviewer's
+  on `models.reviewer`.
+- **The session itself** can't be switched by a skill for longer than a
+  turn, and a cycle lasts many. So the role checks it when it starts: on
+  another model, it says so and asks whether to go on or stop for
+  `/model <model>`. *Why:* deciding roles (product owner, tech lead,
+  architect) pay for judgement; delivery follows a closed plan, and its
+  output is most of a story's cost.
 
 ## Long and costly runs
 

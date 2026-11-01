@@ -28,6 +28,9 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    the tag the runner already skips, or propose `@pending` and the runner
    change that skips it; and set `scenarios.run_pending` to the command
    that runs those scenarios anyway (pytest: `-m pending`).
+   Propose `models` as options — deciding roles on the strongest model,
+   developer and reviewer on a cheaper one, or `inherit` everywhere — and
+   leave `session.fresh_per_cycle` at its default unless the user asks.
    Set `rules_since` to today; list plans of in-progress stories that predate
    the rules in `plans.legacy`, and in `stories.legacy` both implemented
    stories with no date and stories already in flight.

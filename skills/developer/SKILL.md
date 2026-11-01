@@ -9,6 +9,13 @@ their artifacts and send back what doesn't hold.
 
 1. Read the project's adapter, `.claude/sanchin.yaml`. If there is none,
    stop and offer `/sanchin:init`.
+
+   **Model.** If the adapter's `models.developer` names a model other than the
+   one you run on, say so in one line and ask, as options, whether to go on
+   or stop so the user can run `/model <that model>`. Every sub-agent you
+   dispatch gets `model: <models.developer>` unless it is `inherit` or unset
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
+
 2. Read only these, and follow the cycle step by step:
    `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
    `process/delivery.md` and `process/working-rules.md`; and

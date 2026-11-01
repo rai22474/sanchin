@@ -535,6 +535,53 @@ class ValidatorTest(unittest.TestCase):
             output = self.run_hook({"tool_input": {"file_path": str(edited)}})
         self.assertIn("gate no-todo failed", output)
 
+    # --- prompt hook: one session per cycle ---------------------------------
+
+    def transcript(self, *commands):
+        path = self.project.root / "transcript.jsonl"
+        lines = [json.dumps({"type": "user", "message": {"content": f"<command-name>{command}</command-name>"}}) for command in commands]
+        path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+        return str(path)
+
+    def run_prompt_hook(self, prompt, *earlier):
+        payload = {"prompt": prompt, "transcript_path": self.transcript(*earlier), "cwd": str(self.project.root)}
+        stdout = io.StringIO()
+        with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(stdout):
+            main(["--project", str(self.project.root), "prompt-hook"])
+        return stdout.getvalue()
+
+    def test_prompt_hook_blocks_a_role_in_a_session_another_role_used(self):
+        output = json.loads(self.run_prompt_hook("/sanchin:developer", "/sanchin:tech-lead"))
+        self.assertEqual(output["decision"], "block")
+        self.assertIn("/clear", output["reason"])
+
+    def test_prompt_hook_lets_the_same_role_continue(self):
+        self.assertEqual(self.run_prompt_hook("/sanchin:developer", "/sanchin:developer"), "")
+
+    def test_prompt_hook_ignores_a_fresh_session_and_non_cycle_skills(self):
+        self.assertEqual(self.run_prompt_hook("/sanchin:developer"), "")
+        self.assertEqual(self.run_prompt_hook("/sanchin:reviewer", "/sanchin:developer"), "")
+        self.assertEqual(self.run_prompt_hook("implement HU-1", "/sanchin:tech-lead"), "")
+
+    def test_prompt_hook_warns_or_stays_silent_as_the_adapter_says(self):
+        self.project.write(".claude/sanchin.yaml", ADAPTER + "session:\n  fresh_per_cycle: warn\n")
+        output = json.loads(self.run_prompt_hook("/sanchin:developer", "/sanchin:tech-lead"))
+        self.assertIn("/clear", output["hookSpecificOutput"]["additionalContext"])
+        self.project.write(".claude/sanchin.yaml", ADAPTER + "session:\n  fresh_per_cycle: off\n")
+        self.assertEqual(self.run_prompt_hook("/sanchin:developer", "/sanchin:tech-lead"), "")
+
+    # --- models -------------------------------------------------------------
+
+    def test_models_are_read_per_role(self):
+        self.project.write(".claude/sanchin.yaml", ADAPTER + "models:\n  developer: sonnet\n  tech_lead: opus\n")
+        self.assertEqual(load_config(self.project.root).models, {"developer": "sonnet", "tech_lead": "opus"})
+
+    def test_unknown_model_or_role_is_an_adapter_error(self):
+        for section in ("models:\n  developer: gpt\n", "models:\n  tester: sonnet\n", "session:\n  fresh_per_cycle: maybe\n"):
+            self.project.write(".claude/sanchin.yaml", ADAPTER + section)
+            with self.assertRaises(AdapterError):
+                load_config(self.project.root)
+
     def run_hook_code(self, payload):
         with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             return main(["--project", str(self.project.root), "hook"])

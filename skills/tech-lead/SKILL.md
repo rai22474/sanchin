@@ -15,6 +15,13 @@ it is `/sanchin:developer`'s.
    `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/plan.md`; and start every plan from
    the project's template (`base_docs.templates`) or, if it has none,
    `${CLAUDE_PLUGIN_ROOT}/templates/plan.md`.
+
+   **Model.** If the adapter's `models.tech_lead` names a model other than the
+   one you run on, say so in one line and ask, as options, whether to go on
+   or stop so the user can run `/model <that model>`. Every sub-agent you
+   dispatch gets `model: <models.tech_lead>` unless it is `inherit` or unset
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
+
 2. Take only a **ready** story. A pending one isn't refined yet: say so and
    point to `/sanchin:product-owner`. A planned one is already done. A ready
    story that already has plans, with an open question in one, came back
