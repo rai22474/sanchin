@@ -5,6 +5,11 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## Unreleased
+
+- CI on GitHub Actions: the validator's unit tests and `sanchin check` on
+  sanchin's own docs, on every push to `main` and every pull request.
+
 ## 0.1.0 — 2026-11-01
 
 First version, extracted from the process of a real multi-service project.

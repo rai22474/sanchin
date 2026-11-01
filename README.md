@@ -8,6 +8,7 @@
 Executable specs · validated artifacts · deterministic gates · a wiki as memory, disclosed progressively.</p>
 
 <p align="center">
+  <a href="https://github.com/rai22474/sanchin/actions/workflows/ci.yml"><img src="https://github.com/rai22474/sanchin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/version-0.1.0-orange.svg" alt="version 0.1.0">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2.svg" alt="Claude Code plugin">

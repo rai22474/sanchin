@@ -1,0 +1,26 @@
+# sanchin checks itself the way it asks projects to: the validator's unit
+# tests, and its own docs through its own validator.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # the immutability rule reads git history
+      - uses: astral-sh/setup-uv@v5
+      - name: Validator unit tests
+        run: PYTHONPATH=scripts:tests uv run --no-project --with pyyaml --with gherkin-official==42.0.1 python3 -m unittest discover -s tests
+      - name: sanchin checks its own docs
+        run: scripts/sanchin check
+      - name: Eval runner parses
+        run: bash -n evals/run.sh
