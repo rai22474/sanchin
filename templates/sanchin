@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+# Runs the sanchin validator installed with the Claude Code plugin, from this
+# project — so the command is the same in your shell, in git hooks and in
+# scripts, and keeps working when the plugin upgrades and moves.
+#
+#   scripts/sanchin check | trust | gates | git-hook | roadmap | superseded ...
+#
+# Written by /sanchin:init; not edited by hand. It finds the plugin in this
+# order, and runs it with --project set to this repository:
+#   1. $SANCHIN                       an explicit path to a scripts/sanchin
+#   2. $CLAUDE_PLUGIN_ROOT            inside Claude Code
+#   3. the installed plugin           from Claude Code's plugin registry
+#                                     (a project-scoped install for this
+#                                     repository first, then any)
+#   4. the plugin cache               the newest cached version
+set -euo pipefail
+
+project_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+plugins_dir="${CLAUDE_CONFIG_DIR:-$HOME/.claude}/plugins"
+
+from_registry() {
+  local registry="$plugins_dir/installed_plugins.json"
+  [ -f "$registry" ] || return 0
+  if command -v jq >/dev/null 2>&1; then
+    jq -r --arg project "$project_root" '
+      [.plugins | to_entries[] | select(.key | startswith("sanchin@")) | .value[]]
+      | (map(select(.projectPath == $project)) + .) | .[0].installPath // empty' "$registry"
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 - "$registry" "$project_root" <<'PY'
+import json, sys
+entries = [e for key, values in json.load(open(sys.argv[1])).get("plugins", {}).items()
+           if key.startswith("sanchin@") for e in values]
+entries.sort(key=lambda e: e.get("projectPath") != sys.argv[2])
+print(entries[0]["installPath"] if entries else "")
+PY
+  fi
+}
+
+from_cache() {
+  ls -d "$plugins_dir"/cache/*/sanchin/*/scripts/sanchin 2>/dev/null | sort -V | tail -1
+}
+
+candidates=()
+[ -n "${SANCHIN:-}" ] && candidates+=("$SANCHIN")
+[ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && candidates+=("$CLAUDE_PLUGIN_ROOT/scripts/sanchin")
+install_path=$(from_registry || true)
+[ -n "$install_path" ] && candidates+=("$install_path/scripts/sanchin")
+cached=$(from_cache || true)
+[ -n "$cached" ] && candidates+=("$cached")
+
+for candidate in "${candidates[@]}"; do
+  if [ -x "$candidate" ] && [ "$(cd "$(dirname "$candidate")/.." && pwd)" != "$project_root" ]; then
+    exec "$candidate" --project "$project_root" "$@"
+  fi
+done
+
+echo "sanchin: the plugin isn't installed for this project." >&2
+echo "  In Claude Code: /plugin install sanchin@sanchin (see the project's .claude/settings.json)," >&2
+echo "  or set SANCHIN=<path to a sanchin checkout>/scripts/sanchin." >&2
+exit 2

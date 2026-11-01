@@ -30,28 +30,34 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    Set `rules_since` to today; list plans of in-progress stories that predate
    the rules in `plans.legacy`, and in `stories.legacy` both implemented
    stories with no date and stories already in flight.
-4. **Create only what is missing**, after confirmation: a base document
+4. **Write the wrapper** `scripts/sanchin`, a copy of
+   `${CLAUDE_PLUGIN_ROOT}/templates/sanchin`, executable. It is how the
+   user, git hooks and scripts run sanchin from the project. If
+   `scripts/sanchin` already exists and isn't this wrapper, ask for another
+   path and use it everywhere below.
+5. **Create only what is missing**, after confirmation: a base document
    (grill its content with the user — mission, vision, stack, glossary), a
    minimal constitution, templates (from `${CLAUDE_PLUGIN_ROOT}/templates/`,
    translated to the project's language and terms), missing indexes. Never
    move or rename existing files.
-5. **Gates**: list the ones found and propose the ones the stack is missing,
+6. **Gates**: list the ones found and propose the ones the stack is missing,
    each with its level ([gates.md](${CLAUDE_PLUGIN_ROOT}/docs/gates.md)).
    Install nothing without confirmation. Offer to replace per-tool edit
    hooks with the adapter's `gates:` list, and to write the `pre-commit`
    and `pre-push` git hooks as one line each calling
-   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin git-hook <level>` (or a step in
+   `scripts/sanchin git-hook <level>` (or a step in
    the project's hook manager, if it has one); never overwrite an existing
    hook — add the line to it. The hook runs the gates only
-   once the user approves them: show the list and ask the user to run
-   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin trust` themselves — never run it
-   for them ([gates.md](${CLAUDE_PLUGIN_ROOT}/docs/gates.md#trust)).
-6. **Run** `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check` and report.
+   once the user approves them: tell the user to run `/sanchin:trust`
+   (or `scripts/sanchin trust` in a shell) themselves — never run it for
+   them ([gates.md](${CLAUDE_PLUGIN_ROOT}/docs/gates.md#trust)).
+7. **Run** `scripts/sanchin check` and report.
 
 ## With an adapter (doctor)
 
 Run the validator; compare the adapter against the current adapter format
 (new or renamed fields after a sanchin upgrade, see the changelog); check
-that every path it names still exists, and that the git hooks calling
-`sanchin git-hook` point at a sanchin copy that exists (an upgrade moves
-the plugin's); report what to change, as options.
+that every path it names still exists; that `scripts/sanchin` is the
+current `${CLAUDE_PLUGIN_ROOT}/templates/sanchin` (offer to update it
+otherwise); and that the git hooks call it rather than a plugin path, which
+moves on every upgrade. Report what to change, as options.

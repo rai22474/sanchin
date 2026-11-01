@@ -67,13 +67,11 @@ one line each, written by `/sanchin:init` after confirmation:
 ```sh
 #!/bin/sh
 # .git/hooks/pre-push (or a husky / pre-commit framework step)
-exec "/path/to/sanchin/scripts/sanchin" git-hook pre-push
+exec scripts/sanchin git-hook pre-push
 ```
 
-The path is the plugin's copy, which moves when the plugin upgrades;
-re-running `/sanchin:init` as a doctor checks it. A project that pins
-sanchin in CI can point the hook at that copy instead
-([validator.md](validator.md#where-it-runs)).
+`scripts/sanchin` is the project's wrapper, which finds the installed
+plugin wherever an upgrade moved it ([validator.md](validator.md#where-it-runs)).
 
 ## Trust
 
@@ -81,9 +79,13 @@ Gates are shell commands that come from the repository, and the hook runs
 them on every file Claude writes. So the hook runs a repository's gates only
 after the user has approved that exact `gates:` list:
 
-```bash
-"${CLAUDE_PLUGIN_ROOT}"/scripts/sanchin trust   # prints the gates, records the approval
+```text
+/sanchin:trust              # in Claude Code: shows the gates, asks you, records the approval
+scripts/sanchin trust       # the same from a shell, through the project's wrapper
 ```
+
+`/sanchin:trust` can only be invoked by the user — the model can't call it
+— and it asks for an explicit confirmation before it records anything.
 
 The approval lives outside the repository (`$XDG_STATE_HOME/sanchin/`,
 by default `~/.local/state/sanchin/`), is shared by all the repository's

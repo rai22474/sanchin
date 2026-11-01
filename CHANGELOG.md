@@ -5,6 +5,20 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.2 — 2026-11-01
+
+Approving the gates no longer needs a path the user can't find.
+
+- `/sanchin:trust`: shows the adapter's gates, asks for an explicit
+  confirmation and records the approval. Only the user can invoke it
+  (`disable-model-invocation`); the agent still never approves gates.
+- `scripts/sanchin` in the project: `/sanchin:init` writes a thin wrapper
+  (`templates/sanchin`) that finds the installed plugin — `$SANCHIN`,
+  `$CLAUDE_PLUGIN_ROOT`, Claude Code's plugin registry, then the cache — so
+  the README's commands work from a project, and git hooks get a path that
+  survives upgrades.
+- The edit hook's "not trusted" message points to `/sanchin:trust`.
+
 ## 0.1.1 — 2026-11-01
 
 - `generate` in the adapter: the project's own commands that regenerate

@@ -10,7 +10,7 @@ Executable specs · validated artifacts · deterministic gates · a wiki as memo
 <p align="center">
   <a href="https://github.com/rai22474/sanchin/actions/workflows/ci.yml"><img src="https://github.com/rai22474/sanchin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
-  <img src="https://img.shields.io/badge/version-0.1.1-orange.svg" alt="version 0.1.1">
+  <img src="https://img.shields.io/badge/version-0.1.2-orange.svg" alt="version 0.1.2">
   <img src="https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2.svg" alt="Claude Code plugin">
 </p>
 
@@ -120,17 +120,21 @@ without it sanchin installs but **does not load** (`/plugin` shows
 plans, decision records, standards, git hooks, CI — and writes
 `.claude/sanchin.yaml` with the project's own names and paths. In a new
 repository it creates the minimum: base documents (grilled with you),
-templates and indexes. **Nothing is moved or renamed.** Re-run it any time
-as a doctor.
+templates and indexes. **Nothing is moved or renamed.** It also writes
+`scripts/sanchin`, a thin wrapper that runs the installed plugin's validator
+from your project — in your shell, git hooks and scripts — and keeps working
+when the plugin upgrades. Re-run `init` any time as a doctor.
 
 ### 3. Approve the gates
 
-```bash
-scripts/sanchin trust
+```text
+/sanchin:trust
 ```
 
 Gates are shell commands, so the hook runs them only after you approve the
-list — and again whenever it changes ([gates.md](docs/gates.md#trust)).
+list — and again whenever it changes. `/sanchin:trust` shows every command
+and asks you to confirm; only you can invoke it. From a shell,
+`scripts/sanchin trust` does the same ([gates.md](docs/gates.md#trust)).
 
 ### 4. Build something
 
@@ -144,7 +148,7 @@ Each role runs its cycle of [the process](#the-process) and stops for you.
 Check the project at any time — locally, in a git hook, or in CI:
 
 ```bash
-scripts/sanchin check        # inside Claude Code: ${CLAUDE_PLUGIN_ROOT}/scripts/sanchin
+scripts/sanchin check        # the project wrapper init wrote; it finds the installed plugin
 ```
 
 ### Sharing with your team
@@ -288,7 +292,8 @@ cases nobody has seen yet.
 
 | Skill | Role |
 |---|---|
-| `/sanchin:init` | Maps an existing project into the adapter (or scaffolds a new one), creates only what's missing, proposes gates. Re-run it as a doctor. |
+| `/sanchin:init` | Maps an existing project into the adapter (or scaffolds a new one), writes the `scripts/sanchin` wrapper, creates only what's missing, proposes gates. Re-run it as a doctor. |
+| `/sanchin:trust` | Shows the adapter's gates and records your approval, so the edit hook runs them. Only you can invoke it. |
 | `/sanchin:product-owner` | Grills the mission into epics, narratives and stories, writes their scenarios, places them in the roadmap's milestones, hands them over ready. Also: what to build next. |
 | `/sanchin:tech-lead` | Takes a ready story to planned: one plan per component, technical grill, cross-check. |
 | `/sanchin:developer` | Takes a planned story to merged code: scenarios red, green, reviews, close, merge. |
@@ -320,6 +325,8 @@ gates:
 [docs/adapter.md](docs/adapter.md).
 
 ## Validator and gates
+
+From a project, through the wrapper `/sanchin:init` writes (`scripts/sanchin`):
 
 ```bash
 scripts/sanchin check                    # every rule

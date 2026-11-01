@@ -155,8 +155,9 @@ def run_hook(arguments) -> int:
         # Shown to the user, not to Claude: approving commands is the user's call.
         output["systemMessage"] = (
             "sanchin: this repository's gates are not trusted, so they did not run. "
-            "Read the `gates:` list in .claude/sanchin.yaml and, if you accept those commands, "
-            f"run `{TRUST_COMMAND} --project {shlex.quote(str(config.project_root))} trust` yourself."
+            "To review and approve them, run /sanchin:trust in Claude Code "
+            f"(or, from a shell, `scripts/sanchin trust` — or `{TRUST_COMMAND} --project "
+            f"{shlex.quote(str(config.project_root))} trust` if the project has no wrapper)."
         )
     if problems:
         output.update(decision="block", reason=f"sanchin found problems in {relative}:\n" + "\n".join(problems))

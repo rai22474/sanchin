@@ -1,4 +1,5 @@
 import io
+import os
 import json
 import subprocess
 import tempfile
@@ -498,6 +499,7 @@ class ValidatorTest(unittest.TestCase):
         output = json.loads(self.run_hook({"tool_input": {"file_path": str(path)}}))
         self.assertFalse((self.project.root / "ran").exists())
         self.assertIn("not trusted", output["systemMessage"])
+        self.assertIn("/sanchin:trust", output["systemMessage"])
         self.assertNotIn("decision", output)
 
     def test_changed_gates_need_trust_again(self):
@@ -537,6 +539,56 @@ class ValidatorTest(unittest.TestCase):
         with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             return main(["--project", str(self.project.root), "hook"])
 
+
+
+class WrapperTest(unittest.TestCase):
+    """templates/sanchin: the project wrapper finds the installed plugin."""
+
+    PLUGIN = Path(__file__).resolve().parents[1]
+
+    def setUp(self):
+        self._dirs = [tempfile.TemporaryDirectory() for _ in range(2)]
+        self.project, self.config = (Path(d.name) for d in self._dirs)
+        (self.project / "scripts").mkdir()
+        wrapper = self.project / "scripts/sanchin"
+        wrapper.write_text((self.PLUGIN / "templates/sanchin").read_text())
+        wrapper.chmod(0o755)
+        (self.project / ".claude").mkdir()
+        (self.project / ".claude/sanchin.yaml").write_text("version: 1\n")  # invalid on purpose: exit 2 names it
+
+    def tearDown(self):
+        for d in self._dirs:
+            d.cleanup()
+
+    def run_wrapper(self, **env):
+        base = {"PATH": os.environ["PATH"], "HOME": str(self.config), "CLAUDE_CONFIG_DIR": str(self.config)}
+        base.update(env)
+        return subprocess.run([str(self.project / "scripts/sanchin"), "check"], capture_output=True, text=True, env=base)
+
+    def test_finds_the_plugin_in_claude_codes_registry(self):
+        plugins = self.config / "plugins"
+        plugins.mkdir()
+        (plugins / "installed_plugins.json").write_text(json.dumps(
+            {"version": 2, "plugins": {"sanchin@sanchin": [{"scope": "user", "installPath": str(self.PLUGIN)}]}}))
+        result = self.run_wrapper()
+        self.assertIn("has no 'docs' section", result.stderr)  # the real validator ran, on this project
+
+    def test_finds_the_newest_cached_version(self):
+        for version in ("0.1.0", "0.1.10"):
+            target = self.config / f"plugins/cache/sanchin/sanchin/{version}"
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.symlink_to(self.PLUGIN)
+        result = self.run_wrapper()
+        self.assertIn("has no 'docs' section", result.stderr)
+
+    def test_explicit_path_wins(self):
+        result = self.run_wrapper(SANCHIN=str(self.PLUGIN / "scripts/sanchin"))
+        self.assertIn("has no 'docs' section", result.stderr)
+
+    def test_says_how_to_install_when_nothing_is_found(self):
+        result = self.run_wrapper()
+        self.assertEqual(result.returncode, 2)
+        self.assertIn("isn't installed for this project", result.stderr)
 
 FEATURE = """
 Feature: thing

@@ -32,8 +32,16 @@ Global options: `--project DIR` (default: current directory) and
 clean, 1 means rule violations (printed on stderr, one per line, as
 `path[:line]: problem`), 2 means the adapter is missing or invalid.
 
-Inside Claude Code the plugin's copy lives at
-`${CLAUDE_PLUGIN_ROOT}/scripts/sanchin`; the skills reference it that way.
+**Where it runs from.** In a project, `scripts/sanchin` is a thin wrapper
+`/sanchin:init` writes from `templates/sanchin`: it finds the installed
+plugin — `$SANCHIN` if set, then `$CLAUDE_PLUGIN_ROOT` inside Claude Code,
+then Claude Code's plugin registry (`~/.claude/plugins/installed_plugins.json`),
+then the newest copy in the plugin cache — and runs it with `--project` set
+to the repository. Its path never changes, so git hooks and scripts can
+call it; the plugin's own copy moves on every upgrade. Inside Claude Code
+the skills call the plugin's copy directly, at
+`${CLAUDE_PLUGIN_ROOT}/scripts/sanchin`. In this repository,
+`scripts/sanchin` is the validator itself.
 
 ## Rules
 
