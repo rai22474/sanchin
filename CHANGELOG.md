@@ -5,8 +5,16 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
-## Unreleased
+## 0.1.1 — 2026-11-01
 
+- `generate` in the adapter: the project's own commands that regenerate
+  derived files, run by the roles at every hand-off — for a project whose
+  roadmap is built by its own script.
+- `stories.legacy` also takes stories already in flight when a project
+  adopts sanchin: they need no scenarios, like their plans in `plans.legacy`.
+- The immutability rule applies only to stories closed under the rules
+  (dated on or after `rules_since`, not legacy): adopting a project edits
+  the metadata of older stories, and the rule flagged every one of them.
 - CI on GitHub Actions: the validator's unit tests and `sanchin check` on
   sanchin's own docs, on every push to `main` and every pull request.
 

@@ -6,7 +6,10 @@ Retro. Any later difference in the story or its plans, committed or not, is
 an edit of a closed record. A change of behaviour is a new story that
 supersedes it ([process/product.md](../../docs/process/product.md#13-stories-from-a-narrative)).
 
-Skipped without git, for stories in `stories.legacy`, and for a story whose
+Only for stories closed under the rules (dated on or after `rules_since`,
+not in `stories.legacy`): a project adopting sanchin edits the metadata of
+its older stories, and that is not an edit of a record closed under these
+rules. Skipped without git, and for a story whose
 implemented state isn't committed yet or whose baseline commit isn't in
 the history (a shallow clone).
 Reference: docs/artifacts/story.md.
@@ -17,7 +20,7 @@ import subprocess
 from pathlib import Path
 
 from .config import Config
-from .stories import Story, is_legacy
+from .stories import Story, implemented_under_rules
 
 _BRE_SPECIAL = re.compile(r"([.\[\]\\*^$])")
 
@@ -29,7 +32,7 @@ def immutability_problems(config: Config, stories: list[Story]) -> list[str]:
     pattern = f"^{_bre(keys.state_key)}:[[:space:]]*{_bre(keys.states['implemented'])}"
     problems = []
     for story in stories:
-        if story.get(keys.state_key) != keys.states["implemented"] or is_legacy(config, story):
+        if not implemented_under_rules(config, story):
             continue
         story_path = story.path.relative_to(config.project_root).as_posix()
         log = _git(config, "log", "--reverse", "--format=%H", "-G", pattern, "--", story_path)

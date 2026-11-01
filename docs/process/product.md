@@ -134,7 +134,11 @@ behaves today; a story is the record of one change to it.
 The roadmap is a set of **milestones**, each with an objective in prose and
 the stories that deliver it ([artifacts/layers-and-roadmap.md](../artifacts/layers-and-roadmap.md#roadmap)). Place
 the story in a milestone (`milestone:` in its frontmatter), regenerate the
-milestone tables (`sanchin roadmap --write`), and set the story **ready**.
+derived files — the milestone tables (`sanchin roadmap --write`), and
+whatever the project's own commands in the adapter's `generate` list
+produce — and set the story **ready**. A project that generates its roadmap
+with its own script keeps the milestone layer off and lists the script in
+`generate`.
 A milestone's state — planned, in progress, closed — is the product
 owner's call; only one is in progress at a time, and it closes when all its
 stories are implemented. Technical stories from the architect enter the

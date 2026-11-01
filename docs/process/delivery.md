@@ -79,7 +79,8 @@ and commit on the story's branch. In that same commit:
 - drop the `@pending` tag from the story's scenarios;
 - set the story to implemented, with its date (and close any issue it
   resolves);
-- regenerate the milestone tables and the superseded-by table;
+- regenerate the derived files: the milestone tables, the superseded-by
+  table, and the adapter's `generate` commands;
 - write the delivery retro in the plan's **Retro** section (*Delivery*,
   [improvement.md](../improvement.md)).
 

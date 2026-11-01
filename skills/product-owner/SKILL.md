@@ -26,10 +26,11 @@ build a ready story is `/sanchin:tech-lead`'s, building it is
    *1.3* — and don't set it ready until each letter holds. A story too big
    for the increment is split into stories that each still work on their
    own, never into technical layers.
-5. Before handing a story over, run
-   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin roadmap --write` and
-   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check`; their failures are gate
-   failures — diagnose before patching.
+5. Before handing a story over, regenerate the derived files —
+   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin roadmap --write` with the
+   milestone layer on, and every command in the adapter's `generate` list —
+   then run `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check`; their failures
+   are gate failures — diagnose before patching.
 6. End when the stories you worked on are ready and placed, each with its
    Retro section written: say which, and that `/sanchin:tech-lead` takes
    them next. Don't plan or build them.

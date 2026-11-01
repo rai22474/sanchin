@@ -113,7 +113,7 @@ def _relative(config: Config, path: Path) -> str:
 
 
 def is_legacy(config: Config, story: Story) -> bool:
-    """Listed in `stories.legacy`: implemented before the rules, left as it is."""
+    """Listed in `stories.legacy`: closed, or in flight, before the rules — left as it is."""
     return story.path.relative_to(config.project_root).as_posix() in config.stories.legacy
 
 
@@ -143,8 +143,11 @@ def _technical(config: Config, story: Story) -> bool:
 
 
 def _needs_scenarios(config: Config, story: Story) -> bool:
-    """Refined and not yet closed, or closed under the rules: its scenarios are its spec."""
-    if _technical(config, story):
+    """Refined and not yet closed, or closed under the rules: its scenarios are its spec.
+
+    A legacy story — closed, or already in flight, when the project adopted
+    sanchin — was refined before scenarios were part of refining."""
+    if _technical(config, story) or is_legacy(config, story):
         return False
     return (at_least(config, story, "ready") and state_name(config, story) != "implemented") or implemented_under_rules(config, story)
 

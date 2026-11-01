@@ -24,6 +24,8 @@ terms:                       # what the project calls each artifact
 layers: [epic, narrative, milestone]   # optional layers in use; empty = stories only
 components: [app, api]       # one plan per component a story touches
 merge: local                 # local: merge into main | pr: push and open a pull request
+generate:                    # the project's own commands that regenerate derived files
+  - python3 scripts/build_narratives.py docs/roadmap
 
 base_docs:                   # read by the skills (see artifacts/base-documents.md)
   mission_vision: docs/product/vision.md
@@ -62,7 +64,7 @@ stories:
   superseded_index: docs/stories/superseded.md
   delta_heading: Scenario delta
   rules_since: '2026-11-01'
-  legacy: []                   # implemented stories that predate the rules
+  legacy: []                   # stories that predate the rules: closed, or in flight at adoption
   increment: 2 days            # how long a story may take from ready to merged (SMART: time-bound)
 
 scenarios:
@@ -107,9 +109,10 @@ gates:
 | `layers` | skills, validator | `epic`, `narrative`, `milestone`. Off by default. The product owner walks them in that order and skips a layer that is off ([process/product.md](process/product.md#1-product-cycle)). |
 | `components` | skills, validator | `{component}` in any glob expands to each one. |
 | `merge` | developer, maintainer | How a closed story or fix reaches `main`: `local` (default) merges it, `pr` opens a pull request and leaves the merge to the team ([process/delivery.md](process/delivery.md#35-close-retro-and-merge)). |
+| `generate` | product owner, developer | Commands that regenerate the project's own derived files (narrative and epic states, a roadmap its own script builds); the roles run them at every hand-off that changes a state. A project whose script builds its milestones keeps the `milestone` layer off. |
 | `base_docs.*` | skills | Where the four base documents, decisions, issues, proposals and templates live. |
 | `docs.*` | validator | Progressive-context rules ([context.md](context.md)). |
-| `stories.*` | validator, skills | Story rules ([artifacts/story.md](artifacts/story.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists implemented stories (paths from the project root) that predate the rules and may lack a date. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process/product.md](process/product.md#13-stories-from-a-narrative)). |
+| `stories.*` | validator, skills | Story rules ([artifacts/story.md](artifacts/story.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists stories (paths from the project root) that predate the rules — implemented ones that may lack a date, and ones already in flight when the project adopted sanchin, which may lack scenarios. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process/product.md](process/product.md#13-stories-from-a-narrative)). |
 | `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process/states.md](process/states.md#states)). Values must differ. |
 | `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. |
 | `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts/layers-and-roadmap.md](artifacts/layers-and-roadmap.md#roadmap)). |

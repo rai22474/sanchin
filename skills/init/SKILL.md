@@ -28,8 +28,8 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    the tag the runner already skips, or propose `@pending` and the runner
    change that skips it.
    Set `rules_since` to today; list plans of in-progress stories that predate
-   the rules in `plans.legacy`, and implemented stories with no date in
-   `stories.legacy`.
+   the rules in `plans.legacy`, and in `stories.legacy` both implemented
+   stories with no date and stories already in flight.
 4. **Create only what is missing**, after confirmation: a base document
    (grill its content with the user — mission, vision, stack, glossary), a
    minimal constitution, templates (from `${CLAUDE_PLUGIN_ROOT}/templates/`,

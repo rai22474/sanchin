@@ -214,7 +214,7 @@ class ValidatorTest(unittest.TestCase):
         self.project.write("docs/plans/p.md", PLAN_IMPLEMENTED)
         self.project.write(
             "docs/stories/story-1.md",
-            story("ST-1", "implemented", "date: 2025-01-01\nplan: docs/plans/p.md\n"),
+            story("ST-1", "implemented", "date: 2026-02-01\nplan: docs/plans/p.md\n"),
         )
         self.write_superseded_index()
         self.git("init", "-q", "-b", "main")
@@ -239,6 +239,14 @@ class ValidatorTest(unittest.TestCase):
         (self.project.root / "docs/plans/p.md").write_text(PLAN_IMPLEMENTED + "\nlater note\n")
         self.git("commit", "-q", "-am", "touch plan")
         self.assertIn("docs/plans/p.md", self.immutability_errors()[0])
+
+    def test_story_closed_before_the_rules_may_be_edited_while_adopting(self):
+        self.close_story_in_git()
+        path = self.project.root / "docs/stories/story-1.md"
+        path.write_text(path.read_text().replace("date: 2026-02-01", "date: 2025-12-01"))
+        self.git("commit", "-q", "-am", "backdate: closed before the rules")
+        path.write_text(path.read_text().replace("The first thing.", "Something else."))
+        self.assertEqual(self.immutability_errors(), [])
 
     def test_story_closing_in_the_working_tree_is_not_yet_frozen(self):
         self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/p.md\n"))
@@ -409,6 +417,15 @@ class ValidatorTest(unittest.TestCase):
         self.milestone("m-01", "in progress")
         self.milestone("m-02", "in progress")
         self.assertIn("only one at a time", self.roadmap()[1])
+
+    def test_legacy_story_in_flight_needs_no_scenarios(self):
+        self.project.write(
+            ".claude/sanchin.yaml",
+            ADAPTER.replace("  superseded_index:", "  legacy: [docs/stories/story-1.md]\n  superseded_index:"),
+        )
+        self.project.write("docs/plans/p.md", PLAN_IN_PROGRESS)
+        self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/p.md\n"))
+        self.assertFalse(any("needs its 'scenarios'" in error for error in self.errors("stories")))
 
     def test_duplicated_story_id_fails(self):
         self.project.write("docs/stories/story-1.md", story("ST-1", "pending"))
