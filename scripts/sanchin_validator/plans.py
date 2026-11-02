@@ -4,6 +4,10 @@ For every plan a story links, when the story is planned or in progress
 (the `in_progress` rule set), or implemented on or after `plans.rules_since` (plans listed in `plans.legacy` predate the
 rules and are skipped):
 
+- while the story is planned or in progress, the plan's file is named as the
+  story's (`<component dir>/<story file name>`), so either finds the other —
+  unless `plans.named_after_story` is false or the plan is in
+  `plans.legacy_names`;
 - the sections `required_sections[<state>]` lists are present;
 - the open-questions section has no open item left;
 - with a constitution configured, the checklist section answers every
@@ -33,11 +37,22 @@ def check_plans(config: Config, stories: list[Story]) -> list[str]:
         if rule_set is None:
             continue
         for plan_path in _plan_paths(config, story):
+            if rule_set == "in_progress" and _misnamed(config, story, plan_path):
+                errors.append(
+                    f"{plan_path}: a plan is named after its story — rename it to {story.path.name} "
+                    f"in its component's directory, and update the story's {config.stories.plan_key!r}"
+                )
             if plan_path.is_file():
                 text = plan_path.read_text(encoding="utf-8")
                 constitution = constitution_items(config, plan_component(config, plan_path))
                 errors.extend(f"{plan_path}: {problem}" for problem in _plan_problems(config, text, rule_set, constitution))
     return errors
+
+
+def _misnamed(config: Config, story: Story, plan_path: Path) -> bool:
+    plans = config.plans
+    relative = plan_path.relative_to(config.project_root).as_posix()
+    return plans.named_after_story and relative not in plans.legacy_names and plan_path.name != story.path.name
 
 
 def plan_component(config: Config, plan_path: Path) -> str | None:

@@ -165,8 +165,18 @@ class ValidatorTest(unittest.TestCase):
 
     def test_compliant_plan_passes(self):
         self.project.write("docs/constitution/tramp-data.md", "# Tramp data\n")
+        self.project.write("docs/plans/story-1.md", PLAN_IN_PROGRESS)
+        self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/story-1.md\n"))
+        self.assertEqual(self.errors("plans"), [])
+
+    def test_plan_is_named_after_its_story_while_planned_or_in_progress(self):
         self.project.write("docs/plans/p.md", PLAN_IN_PROGRESS)
         self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/p.md\n"))
+        self.assertTrue(any("rename it to story-1.md" in error for error in self.errors("plans")))
+        adapter = self.project.root / ".claude/sanchin.yaml"
+        adapter.write_text(adapter.read_text().replace("  rules_since:", "  legacy_names: [docs/plans/p.md]\n  rules_since:"))
+        self.assertEqual(self.errors("plans"), [])
+        adapter.write_text(ADAPTER.replace("  rules_since:", "  named_after_story: false\n  rules_since:"))
         self.assertEqual(self.errors("plans"), [])
 
     # --- fixes -------------------------------------------------------------
@@ -196,13 +206,13 @@ class ValidatorTest(unittest.TestCase):
         self.project.write("docs/constitution/app/ui-state.md", "# UI state\n")
         self.project.write("docs/constitution/api/idempotency.md", "# Idempotency\n")
         plan = PLAN_IN_PROGRESS.replace("- tramp-data: n/a", "- tramp-data: n/a\n- ui-state: ok")
-        self.project.write("docs/plans/app/p.md", plan)
-        self.project.write("docs/plans/p.md", plan)
-        self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/app/p.md, docs/plans/p.md\n"))
+        self.project.write("docs/plans/app/story-1.md", plan)
+        self.project.write("docs/plans/story-1.md", plan)
+        self.project.write("docs/stories/story-1.md", story("ST-1", "in progress", "plan: docs/plans/app/story-1.md, docs/plans/story-1.md\n"))
         errors = self.errors("plans")
-        self.assertEqual([error for error in errors if "plans/app/p.md" in error], [])
+        self.assertEqual([error for error in errors if "plans/app/story-1.md" in error], [])
         # A plan whose component can't be told from its path answers every component's rules.
-        self.assertTrue(any("docs/plans/p.md" in error and "'idempotency'" in error for error in errors))
+        self.assertTrue(any("docs/plans/story-1.md" in error and "'idempotency'" in error for error in errors))
 
     def git(self, *arguments):
         subprocess.run(

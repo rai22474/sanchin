@@ -5,6 +5,17 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.8 — 2026-11-02
+
+A plan traces to its story by name.
+
+- A plan's file is named as its story's file, in its component's
+  directory (`plans/api/st-12-export-csv.md` for
+  `stories/st-12-export-csv.md`). The validator checks it while the story
+  is planned or in progress; `plans.named_after_story: false` turns it off,
+  and `plans.legacy_names` lists plans named before the rule. Plans named
+  by their own slug traced to nothing without opening the story.
+
 ## 0.1.7 — 2026-11-02
 
 Fewer stops for answers that never change.

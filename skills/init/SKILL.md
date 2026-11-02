@@ -35,7 +35,9 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    costly runs and merges there, and show the lines to write themselves
    ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#approvals)).
    Set `rules_since` to today; list plans of in-progress stories that predate
-   the rules in `plans.legacy`, and in `stories.legacy` both implemented
+   the rules in `plans.legacy`, the plans of stories planned or in progress
+   whose file isn't named as their story's in `plans.legacy_names`, and in
+   `stories.legacy` both implemented
    stories with no date and stories already in flight.
 4. **Write the wrapper** `scripts/sanchin`, a copy of
    `${CLAUDE_PLUGIN_ROOT}/templates/sanchin`, executable. It is how the

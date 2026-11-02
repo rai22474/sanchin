@@ -14,7 +14,8 @@ it is `/sanchin:developer`'s.
    `process/planning.md` and `process/working-rules.md`; the plan format in
    `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/plan.md`; and start every plan from
    the project's template (`base_docs.templates`) or, if it has none,
-   `${CLAUDE_PLUGIN_ROOT}/templates/plan.md`.
+   `${CLAUDE_PLUGIN_ROOT}/templates/plan.md`, in a file named as the story's
+   file, in the component's plans directory.
 
    **Model.** If the adapter's `models.tech_lead` names a model other than the
    one you run on, say so in one line — naming

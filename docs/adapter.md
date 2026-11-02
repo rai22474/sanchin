@@ -102,6 +102,8 @@ plans:
   directory: docs/plans
   rules_since: '2026-11-01'
   legacy: []                   # plans written before the rules
+  named_after_story: true      # default: a plan's file name is its story's file name
+  legacy_names: []             # plans named before that rule, exempt from it
   required_sections:
     in_progress: [Current state, Design, Steps]
     implemented: [Current state, Design, Steps, Implementation, Review]

@@ -72,6 +72,8 @@ class PlansConfig:
     constitution_verdicts: tuple[str, ...]
     rules_since: str
     legacy: tuple[str, ...]
+    named_after_story: bool = True
+    legacy_names: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -262,6 +264,8 @@ def _plans_config(project_root: Path, raw: dict, components: tuple[str, ...]) ->
         constitution_verdicts=tuple(verdict.lower() for verdict in constitution.get("verdicts", ["n/a", "ok", "exception"])),
         rules_since=str(raw.get("rules_since", "0000-00-00")),
         legacy=tuple(raw.get("legacy", [])),
+        named_after_story=bool(raw.get("named_after_story", True)),
+        legacy_names=tuple(raw.get("legacy_names", [])),
     )
 
 
