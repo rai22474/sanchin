@@ -24,3 +24,7 @@ jobs:
         run: scripts/sanchin check
       - name: Eval runner parses
         run: bash -n evals/run.sh
+      - name: README badge matches the plugin version
+        run: |
+          version=$(jq -r .version .claude-plugin/plugin.json)
+          grep -q "badge/version-${version}-" README.md || { echo "README badge is not ${version}"; exit 1; }
