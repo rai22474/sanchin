@@ -83,6 +83,11 @@ models:                        # optional; per role: opus | sonnet | haiku | fab
 session:
   fresh_per_cycle: block       # block (default) | warn | off — a role's cycle starts in a fresh session
 
+approvals:                     # optional, the user's to write — Claude may not edit it; each: ask (default) | auto
+  commit: auto                 # the commits the process prescribes, on main and on the story's branch
+  costly_runs: auto            # the first costly run of a story's fix cycle
+  merge: ask                   # merge + push + CI (or push + pull request), only with the local gates green
+
 roadmap:                       # with the milestone layer on
   directory: docs/roadmap/milestones
   glob: '*.md'
@@ -126,7 +131,8 @@ gates:
 | `stories.*` | validator, skills | Story rules ([artifacts/story.md](artifacts/story.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists stories (paths from the project root) that predate the rules — implemented ones that may lack a date, and ones already in flight when the project adopted sanchin, which may lack scenarios. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process/product.md](process/product.md#13-stories-from-a-narrative)). |
 | `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process/states.md](process/states.md#states)). Values must differ. |
 | `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. `run_pending` (optional, read by the developer) is the command that runs them anyway, for the red run; without it the developer overrides the runner's tag filter. |
-| `models.*` | skills | The model per role — `product_owner`, `tech_lead`, `developer`, `architect`, `maintainer`, `reviewer`, `coach` — one of `opus`, `sonnet`, `haiku`, `fable`, `inherit` (default). The role's sub-agents run on it; the role itself, on starting, asks to switch when the session runs another ([process/working-rules.md](process/working-rules.md#models)). |
+| `models.*` | skills | The model per role — `product_owner`, `tech_lead`, `developer`, `architect`, `maintainer`, `reviewer`, `coach` — one of `opus`, `sonnet`, `haiku`, `fable`, `inherit` (default). The role's sub-agents run on it; the role itself, on starting, says so when the session runs another, and goes on ([process/working-rules.md](process/working-rules.md#models)). |
+| `approvals.*` | skills, hook | `commit`, `costly_runs`, `merge`: `ask` (default) or `auto`, done without asking — the steps each covers are in [process/working-rules.md](process/working-rules.md#approvals). The user's to set: a hook denies Claude's edits to this section. |
 | `session.fresh_per_cycle` | hook | `block` (default), `warn` or `off`: what the prompt hook does when a role's skill is invoked in a session another role already used ([process/working-rules.md](process/working-rules.md#one-session-per-cycle)). |
 | `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts/layers-and-roadmap.md](artifacts/layers-and-roadmap.md#roadmap)). |
 | `acceptance.*` | developer, maintainer | How to run acceptance scenarios, and whether a run is costly. |

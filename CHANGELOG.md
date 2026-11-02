@@ -5,6 +5,22 @@
 All notable changes to sanchin. Versions follow [semantic versioning](https://semver.org);
 a change to the adapter format is a major version.
 
+## 0.1.7 — 2026-11-02
+
+Fewer stops for answers that never change.
+
+- Adapter `approvals` (`commit`, `costly_runs`, `merge`; `ask` by default,
+  or `auto`): the user pre-approves, in writing, the commits the process
+  prescribes, the first costly run of a fix cycle, and the merge with the
+  local gates green. With `auto` the role says what it does in one line
+  and does it. Live deploy configuration is always asked.
+- A PreToolUse hook (`sanchin adapter-guard`) denies Claude's edits that
+  change `approvals`: approving is the user's decision, never the agent's.
+- Model check: a role on another model than `models.<role>` says so and
+  goes on instead of asking; the user interrupts to switch.
+- In the first stories under sanchin, a delivery cycle stopped three to six
+  times for these questions, and the answer was always the recommended one.
+
 ## 0.1.6 — 2026-11-01
 
 Grills run the grilling skill, not a memory of it.

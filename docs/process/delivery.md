@@ -7,7 +7,7 @@
 ## 3.1 Start
 
 Set the story **in progress** on `main` and commit just that, with the
-user's approval; then create the story's branch and worktree from it.
+user's approval ([`approvals.commit`](working-rules.md#approvals)); then create the story's branch and worktree from it.
 Everything below happens in the worktree. *Why:* `main` says who holds
 which story — a story that still reads planned there gets picked up twice;
 and several sessions can work in one repository at once, so a shared
@@ -95,8 +95,9 @@ and commit on the story's branch. In that same commit:
 - write the delivery retro in the plan's **Retro** section (*Delivery*,
   [improvement.md](../improvement.md)).
 
-Then, with the user's approval, integrate the story's branch the way the
-adapter's `merge` says ([adapter.md](../adapter.md)):
+Then, with the user's approval
+([`approvals.merge`](working-rules.md#approvals)), integrate the story's
+branch the way the adapter's `merge` says ([adapter.md](../adapter.md)):
 
 - **`local`** (the default): merge it into `main`, push, check that CI
   actually passed, and remove the worktree.

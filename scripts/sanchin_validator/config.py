@@ -100,6 +100,10 @@ MERGE_MODES = ("local", "pr")
 MODEL_ROLES = ("product_owner", "tech_lead", "developer", "architect", "maintainer", "reviewer", "coach")
 MODEL_VALUES = ("inherit", "opus", "sonnet", "haiku", "fable")
 FRESH_PER_CYCLE_MODES = ("block", "warn", "off")
+# Actions the user may pre-approve (docs/adapter.md#approvals); every one
+# not set to `auto` is asked before it is done.
+APPROVAL_ACTIONS = ("commit", "costly_runs", "merge")
+APPROVAL_VALUES = ("ask", "auto")
 
 
 @dataclass(frozen=True)
@@ -117,6 +121,7 @@ class Config:
     gates: tuple[Gate, ...] = field(default_factory=tuple)
     models: dict[str, str] = field(default_factory=dict)
     fresh_per_cycle: str = "block"
+    approvals: dict[str, str] = field(default_factory=lambda: dict.fromkeys(APPROVAL_ACTIONS, "ask"))
 
 
 def load_config(project_root: Path, adapter_file: Path | None = None) -> Config:
@@ -147,7 +152,20 @@ def build_config(project_root: Path, raw: dict) -> Config:
         gates=tuple(_gate(entry) for entry in raw.get("gates", [])),
         models=_models(_optional_section(raw, "models")),
         fresh_per_cycle=_fresh_per_cycle(_optional_section(raw, "session")),
+        approvals=approvals(raw),
     )
+
+
+def approvals(raw: dict) -> dict[str, str]:
+    """The adapter's `approvals`, every action filled in (`ask` unless set)."""
+    section = _optional_section(raw, "approvals")
+    unknown = set(section) - set(APPROVAL_ACTIONS)
+    if unknown:
+        raise AdapterError(f"approvals has unknown actions {sorted(unknown)}; allowed: {list(APPROVAL_ACTIONS)}")
+    for action, value in section.items():
+        if value not in APPROVAL_VALUES:
+            raise AdapterError(f"approvals.{action} is {value!r}; allowed: {list(APPROVAL_VALUES)}")
+    return {action: str(section.get(action, "ask")) for action in APPROVAL_ACTIONS}
 
 
 def _models(raw: dict) -> dict[str, str]:

@@ -11,8 +11,8 @@ their artifacts and send back what doesn't hold.
    stop and offer `/sanchin:init`.
 
    **Model.** If the adapter's `models.developer` names a model other than the
-   one you run on, say so in one line and ask, as options, whether to go on
-   or stop so the user can run `/model <that model>`. Every sub-agent you
+   one you run on, say so in one line — naming
+   `/model <that model>` — and go on; don't ask. Every sub-agent you
    dispatch gets `model: <models.developer>` unless it is `inherit` or unset
    ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
 
@@ -28,7 +28,10 @@ their artifacts and send back what doesn't hold.
    yourself. *Why:* a story built on an open "what" or "how" decides it
    without its owner.
 4. Set the story in progress on `main` — a commit of just that, with the
-   user's approval — before creating its worktree. *Why:* `main` says who
+   user's approval — before creating its worktree. Commits, the first
+   costly run and the merge are asked unless the adapter's `approvals` say
+   `auto`; then say what you do in one line and do it
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#approvals)). *Why:* `main` says who
    holds which story; one that still reads planned gets picked up twice.
 5. When the plan doesn't hold — a design question, a contract that doesn't
    fit — write it as an open question in the plan **on `main`**, set the

@@ -31,6 +31,9 @@ Read `${CLAUDE_PLUGIN_ROOT}/docs/adapter.md` and
    Propose `models` as options — deciding roles on the strongest model,
    developer and reviewer on a cheaper one, or `inherit` everywhere — and
    leave `session.fresh_per_cycle` at its default unless the user asks.
+   Don't write `approvals`: say that the user can pre-approve commits,
+   costly runs and merges there, and show the lines to write themselves
+   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#approvals)).
    Set `rules_since` to today; list plans of in-progress stories that predate
    the rules in `plans.legacy`, and in `stories.legacy` both implemented
    stories with no date and stories already in flight.

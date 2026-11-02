@@ -26,6 +26,7 @@ scripts/sanchin git-hook pre-commit|pre-push   # body of a git hook (gates.md#gi
 scripts/sanchin trust                    # approve the adapter's gates for the hook (gates.md#trust)
 scripts/sanchin hook                     # PostToolUse entry point (stdin payload)
 scripts/sanchin prompt-hook              # UserPromptSubmit entry point: one session per role cycle
+scripts/sanchin adapter-guard            # PreToolUse entry point: Claude may not change the adapter's approvals
 ```
 
 Global options: `--project DIR` (default: current directory) and

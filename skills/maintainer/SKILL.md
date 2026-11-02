@@ -9,8 +9,8 @@ description: Fixes a known bug through the short lane — the issue is the spec,
    and `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/issue.md`.
 
    **Model.** If the adapter's `models.maintainer` names a model other than the
-   one you run on, say so in one line and ask, as options, whether to go on
-   or stop so the user can run `/model <that model>`. Every sub-agent you
+   one you run on, say so in one line — naming
+   `/model <that model>` — and go on; don't ask. Every sub-agent you
    dispatch gets `model: <models.maintainer>` unless it is `inherit` or unset
    ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
 

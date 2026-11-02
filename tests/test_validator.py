@@ -611,6 +611,35 @@ class ValidatorTest(unittest.TestCase):
             with self.assertRaises(AdapterError):
                 load_config(self.project.root)
 
+    # --- approvals ----------------------------------------------------------
+
+    def test_approvals_default_to_ask_and_take_auto(self):
+        self.assertEqual(load_config(self.project.root).approvals, {"commit": "ask", "costly_runs": "ask", "merge": "ask"})
+        self.project.write(".claude/sanchin.yaml", ADAPTER + "approvals:\n  commit: auto\n")
+        self.assertEqual(load_config(self.project.root).approvals["commit"], "auto")
+        for section in ("approvals:\n  commit: yes\n", "approvals:\n  deploy: auto\n"):
+            self.project.write(".claude/sanchin.yaml", ADAPTER + section)
+            with self.assertRaises(AdapterError):
+                load_config(self.project.root)
+
+    def run_adapter_guard(self, tool_name, **tool_input):
+        payload = {"tool_name": tool_name, "tool_input": {"file_path": str(self.project.root / ".claude/sanchin.yaml"), **tool_input}}
+        stdout = io.StringIO()
+        with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(stdout):
+            main(["--project", str(self.project.root), "adapter-guard"])
+        return stdout.getvalue()
+
+    def test_adapter_guard_denies_claude_changing_approvals(self):
+        denied = json.loads(self.run_adapter_guard("Write", content=ADAPTER + "approvals:\n  merge: auto\n"))
+        self.assertEqual(denied["hookSpecificOutput"]["permissionDecision"], "deny")
+        self.project.write(".claude/sanchin.yaml", ADAPTER + "approvals:\n  merge: auto\n")
+        self.assertIn("deny", self.run_adapter_guard("Edit", old_string="merge: auto", new_string="merge: ask"))
+
+    def test_adapter_guard_lets_other_adapter_edits_through(self):
+        self.project.write(".claude/sanchin.yaml", ADAPTER + "approvals:\n  merge: auto\n")
+        self.assertEqual(self.run_adapter_guard("Write", content=ADAPTER + "models:\n  developer: sonnet\napprovals:\n  merge: auto\n"), "")
+        self.assertEqual(self.run_adapter_guard("Edit", old_string="version: 1", new_string="version: 1\nlanguage: es"), "")
+
     def run_hook_code(self, payload):
         with mock.patch("sys.stdin", io.StringIO(json.dumps(payload))), redirect_stdout(io.StringIO()), redirect_stderr(io.StringIO()):
             return main(["--project", str(self.project.root), "hook"])

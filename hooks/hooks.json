@@ -1,5 +1,17 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "payload=$(cat); case \"$payload\" in *sanchin.yaml*) printf '%s' \"$payload\" | \"${CLAUDE_PLUGIN_ROOT}\"/scripts/sanchin --project \"${CLAUDE_PROJECT_DIR}\" adapter-guard ;; esac",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Write|Edit",

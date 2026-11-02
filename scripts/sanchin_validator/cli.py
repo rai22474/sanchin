@@ -1,4 +1,4 @@
-"""Command line: `sanchin check`, `roadmap`, `superseded`, `gates`, `git-hook`, `trust`, `hook`, `prompt-hook`.
+"""Command line: `sanchin check`, `roadmap`, `superseded`, `gates`, `git-hook`, `trust`, `hook`, `prompt-hook`, `adapter-guard`.
 
 Run it through `scripts/sanchin`, which finds a Python with PyYAML.
 Reference: docs/validator.md.
@@ -12,7 +12,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from .config import AdapterError, Config, MissingAdapterError, load_config
+from .config import ADAPTER_PATH, AdapterError, Config, MissingAdapterError, load_config
 from .docs import check_docs
 from .gates import gates_for, run_gates
 from .trust import is_trusted, repository_key, trust
@@ -30,7 +30,7 @@ CHECKS = ("docs", "stories", "plans")
 def main(argv: list[str] | None = None) -> int:
     parser = _parser()
     arguments = parser.parse_args(argv)
-    if arguments.handler in (run_hook, run_prompt_hook):
+    if arguments.handler in (run_hook, run_prompt_hook, run_adapter_guard):
         return arguments.handler(arguments)
     project_root = Path(arguments.project).resolve()
     try:
@@ -213,6 +213,66 @@ def run_prompt_hook(arguments) -> int:
     return 0
 
 
+def run_adapter_guard(arguments) -> int:
+    """PreToolUse hook: Claude may not change the adapter's `approvals`.
+
+    Pre-approving commits, costly runs and merges is the user's decision
+    (docs/adapter.md#approvals); an agent that could write it could approve
+    itself. Any other edit to the adapter goes through.
+    """
+    payload = json.load(sys.stdin)
+    tool_input = payload.get("tool_input", {})
+    file_path = tool_input.get("file_path")
+    if not file_path:
+        return 0
+    absolute = Path(file_path).resolve()
+    root = _working_tree(absolute) or Path(arguments.project).resolve()
+    if absolute != (root / ADAPTER_PATH).resolve():
+        return 0
+    before = absolute.read_text(encoding="utf-8") if absolute.is_file() else ""
+    after = _text_after_edit(payload.get("tool_name", ""), tool_input, before)
+    if after is None or not _approvals_changed(before, after):
+        return 0
+    print(json.dumps({"hookSpecificOutput": {
+        "hookEventName": "PreToolUse",
+        "permissionDecision": "deny",
+        "permissionDecisionReason": (
+            "sanchin: the adapter's `approvals` are the user's to set, never Claude's. "
+            "Make the edit without touching `approvals`, and tell the user which "
+            "setting to change in .claude/sanchin.yaml themselves if one is needed."
+        ),
+    }}))
+    return 0
+
+
+def _text_after_edit(tool: str, tool_input: dict, before: str) -> str | None:
+    if tool == "Write":
+        return tool_input.get("content", "")
+    edits = tool_input.get("edits") or [tool_input]
+    text = before
+    for edit in edits:
+        old, new = edit.get("old_string", ""), edit.get("new_string", "")
+        if not old:
+            return None
+        text = text.replace(old, new) if edit.get("replace_all") else text.replace(old, new, 1)
+    return text
+
+
+def _approvals_changed(before: str, after: str) -> bool:
+    import yaml
+
+    try:
+        old, new = yaml.safe_load(before), yaml.safe_load(after)
+    except yaml.YAMLError:  # compare the section's text when either side doesn't parse
+        section = re.compile(r"(?ms)^approvals:.*?(?=^\S|\Z)")
+        return section.findall(before) != section.findall(after)
+    return _section_of(old) != _section_of(new)
+
+
+def _section_of(raw):
+    return raw.get("approvals") if isinstance(raw, dict) else None
+
+
 def _roles_in_transcript(transcript_path: str | None) -> list[str]:
     """The /sanchin: roles the user invoked earlier in this session."""
     if not transcript_path or not Path(transcript_path).is_file():
@@ -371,4 +431,6 @@ def _parser() -> argparse.ArgumentParser:
 
     prompt_hook = commands.add_parser("prompt-hook", help="UserPromptSubmit hook entry point: one session per role cycle")
     prompt_hook.set_defaults(handler=run_prompt_hook)
+    adapter_guard = commands.add_parser("adapter-guard", help="PreToolUse hook entry point: Claude may not change the adapter's approvals")
+    adapter_guard.set_defaults(handler=run_adapter_guard)
     return parser
