@@ -14,6 +14,11 @@ every project gets the same guarantees — while names, paths and cut-off
 dates differ. Project-specific checks stay project scripts, declared as
 gates ([gates.md](gates.md)).
 
+## Requirements
+
+Use Git and `uv` (recommended), or Python 3 with PyYAML and
+`gherkin-official` already installed.
+
 ## Commands
 
 ```bash
@@ -24,9 +29,9 @@ scripts/sanchin superseded [--write]     # print / rewrite the superseded-by tab
 scripts/sanchin gates --level pre-push FILE…   # run the project's gates of one level
 scripts/sanchin git-hook pre-commit|pre-push   # body of a git hook (gates.md#git-hooks)
 scripts/sanchin trust                    # approve the adapter's gates for the hook (gates.md#trust)
-scripts/sanchin hook                     # PostToolUse entry point (stdin payload)
-scripts/sanchin prompt-hook              # UserPromptSubmit entry point: one session per role cycle
-scripts/sanchin adapter-guard            # PreToolUse entry point: Claude may not change the adapter's approvals
+scripts/sanchin hook                     # Claude Code PostToolUse entry point
+scripts/sanchin prompt-hook              # Claude Code UserPromptSubmit entry point
+scripts/sanchin adapter-guard            # Claude Code PreToolUse entry point
 ```
 
 Global options: `--project DIR` (default: current directory) and
@@ -34,16 +39,20 @@ Global options: `--project DIR` (default: current directory) and
 clean, 1 means rule violations (printed on stderr, one per line, as
 `path[:line]: problem`), 2 means the adapter is missing or invalid.
 
-**Where it runs from.** In a project, `scripts/sanchin` is a thin wrapper
-`/sanchin:init` writes from `templates/sanchin`: it finds the installed
-plugin — `$SANCHIN` if set, then `$CLAUDE_PLUGIN_ROOT` inside Claude Code,
-then Claude Code's plugin registry (`~/.claude/plugins/installed_plugins.json`),
-then the newest copy in the plugin cache — and runs it with `--project` set
-to the repository. Its path never changes, so git hooks and scripts can
-call it; the plugin's own copy moves on every upgrade. Inside Claude Code
-the skills call the plugin's copy directly, at
-`${CLAUDE_PLUGIN_ROOT}/scripts/sanchin`. In this repository,
-`scripts/sanchin` is the validator itself.
+The `init` skill copies the project wrapper from `templates/sanchin`.
+The wrapper runs the validator with `--project` pointing to the consuming
+project. It looks in this order:
+
+1. `$SANCHIN`, if set to the validator executable.
+2. `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin`, in Claude Code.
+3. `.agents/sanchin/scripts/sanchin` in the current worktree, then the
+   primary Git worktree. The Codex installer creates the checkout link.
+4. Claude Code's installed plugin registry, preferring the project install.
+5. The newest version in Claude Code's plugin cache.
+
+In this repository `scripts/sanchin` is the validator itself. You can call
+it directly with `--project /path/to/project` from any checkout. See the
+[Codex guide](codex.md#skill-runtime) for wrappers in linked worktrees.
 
 ## Rules
 
@@ -65,8 +74,8 @@ the skills call the plugin's copy directly, at
 
 | Level | How |
 |---|---|
-| edit | The plugin's PostToolUse hook runs the doc rules on every edited markdown file under `docs.root`, plus the project's `edit` gates. The project is the git working tree that holds the edited file — a story's worktree uses its own adapter, docs and cwd, wherever the worktree lives. Silent in a project without an adapter (it exits before starting Python); with an invalid adapter it reports a non-blocking error on each edit, since its gates are off until the adapter is fixed. |
-| pre-commit / pre-push | The project's git hook is one line, `scripts/sanchin git-hook <level>`: it runs that level's gates over the staged or pushed files, plus `check` at pre-push ([gates.md](gates.md#git-hooks)). Point it at the plugin's copy, or vendor a pinned copy (see below). |
+| edit | The Claude Code plugin's PostToolUse hook runs the doc rules on every edited markdown file under `docs.root`, plus the project's `edit` gates. The project is the git working tree that holds the edited file — a story's worktree uses its own adapter, docs and cwd, wherever the worktree lives. Silent in a project without an adapter (it exits before starting Python); with an invalid adapter it reports a non-blocking error on each edit, since its gates are off until the adapter is fixed. The Codex distribution uses [explicit edit checks](gates.md#edit-checks-in-codex). |
+| pre-commit / pre-push | The project's git hook is one line, `scripts/sanchin git-hook <level>`: it runs that level's gates over the staged or pushed files, plus `check` at pre-push ([gates.md](gates.md#git-hooks)). The wrapper locates the validator as described above. |
 | CI | Check out sanchin at the version the project pins and run its `scripts/sanchin check`. |
 
 A CI step, pinned to a release tag:

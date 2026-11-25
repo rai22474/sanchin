@@ -1,6 +1,6 @@
 {
   "name": "sanchin",
-  "description": "sanchin: a reproducible, spec-first development process for Claude Code.",
+  "description": "The Claude Code distribution of Sanchin, a reproducible, spec-first development process.",
   "owner": {
     "name": "rai22474",
     "url": "https://github.com/rai22474"
@@ -12,7 +12,7 @@
     {
       "name": "sanchin",
       "source": "./",
-      "description": "A reproducible, spec-first development process for Claude Code."
+      "description": "Sanchin's shared process, with role skills and automatic edit checks for Claude Code."
     }
   ]
 }

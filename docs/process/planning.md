@@ -2,7 +2,7 @@
 
 [README](../../README.md) · [Docs](../index.md) · [Process](index.md)
 
-`/sanchin:tech-lead`, on a ready story.
+`tech-lead`, on a ready story.
 
 ## 2.1 Plans
 
@@ -30,13 +30,13 @@ steps. The story links its plans.
   suggest. *Why:* only the "how" shows a story's real size, and a story
   that outgrows its increment loses every benefit of being small.
 - A design that contradicts a decision record in force, or needs a new
-  one, stops here and goes to `/sanchin:architect`. *Why:* a story plan is
+  one, stops here and goes to `architect`. *Why:* a story plan is
   the wrong place to change the architecture — its scope is one story.
 
 ## 2.2 Technical grill
 
-Grill the plans, technical side only, starting by invoking
-`mattpocock-skills:grilling` ([working-rules.md](working-rules.md#grills)). Research first — a fact found in the
+Grill the technical side of the plans using the
+[grill rules](working-rules.md#grills). Research first. A fact found in the
 code routinely resolves what looked like a judgement call. With several
 plans, grill them together: the cross-component contract must be closed
 before any of them is implemented. Answers go to each plan's decisions
@@ -45,8 +45,8 @@ shows up goes back to the product owner (see [States](states.md#states)).
 
 ## 2.3 Cross-check
 
-Dispatch one read-only sub-agent with the story, its feature files, all its
-plans and the decisions they cite, briefed with the reviewer's spec brief
+Do a read-only cross-check of the story, its feature files, all its plans
+and the decisions they cite. Follow the reviewer's spec brief
 minus the code: criteria with no scenario, scenarios that would pass on
 today's code (above all negative ones whose subject doesn't exist yet),
 superseded criteria whose scenarios still assert the old behaviour, an
@@ -58,4 +58,4 @@ inconsistency between spec artifacts is cheapest to fix before code
 depends on it.
 
 Write the planning retro in the plan's **Retro** section (*Planning*), set
-the story **planned**, and stop: it is ready for `/sanchin:developer`.
+the story **planned**, and stop: it is ready for `developer`.

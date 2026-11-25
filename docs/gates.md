@@ -10,7 +10,7 @@ declared in its adapter.
 
 | Level | Runs | Gets | Put here |
 |---|---|---|---|
-| **edit** | The plugin's PostToolUse hook, on each file Claude writes | Feedback while the change is still in front of the agent | Fast, per-file checks: lint, format, type check of one file, doc references |
+| **edit** | Claude Code PostToolUse hook or explicit Codex invocation | Feedback while the change is still in front of the agent | Fast, per-file checks: lint, format, type check of one file, doc references |
 | **pre-commit** | The project's git hook | A clean commit | Secrets scan, formatters over staged files |
 | **pre-push** | The project's git hook | Nothing broken leaves the machine | Unit tests, `sanchin check`, architecture boundaries, duplication |
 | **CI** | The pipeline | The last net | Everything above plus what needs the full environment |
@@ -47,9 +47,22 @@ gates:
 `{file}` is replaced by the quoted relative path. A gate with `{file}` runs
 once per matching file; a gate without it (a test suite) runs once when any
 file matches. `timeout` (seconds, default 120) bounds each run; a gate that
-exceeds it fails. The hook runs the `edit` gates;
+exceeds it fails. In Claude Code the plugin hook runs the `edit` gates.
 `scripts/sanchin gates --level <level> FILE…` runs any level from a git
 hook or CI.
+
+## Edit checks in Codex
+
+Run per-file documentation checks for changed Markdown under `docs.root`
+and edit gates for the files they cover, as configured by the project.
+
+```bash
+scripts/sanchin check --file docs/example.md
+scripts/sanchin gates --level edit docs/example.md src/example.py
+```
+
+This distribution registers no Codex edit hook. Put a check in a Git
+hook or CI if it must run at every commit or push.
 
 ## Git hooks
 
@@ -64,7 +77,7 @@ the push.
 | `pre-push` | The files of every commit being pushed that no remote has yet (from the refs git passes on stdin; `HEAD` when run by hand). |
 
 Gates read the files from the working tree, not the index. The hooks are
-one line each, written by `/sanchin:init` after confirmation:
+one line each, set up by the `init` skill after confirmation:
 
 ```sh
 #!/bin/sh
@@ -72,14 +85,14 @@ one line each, written by `/sanchin:init` after confirmation:
 exec scripts/sanchin git-hook pre-push
 ```
 
-`scripts/sanchin` is the project's wrapper, which finds the installed
-plugin wherever an upgrade moved it ([validator.md](validator.md#where-it-runs)).
+`scripts/sanchin` is the project's wrapper, which locates the installed
+validator ([validator.md](validator.md#where-it-runs)).
 
 ## Trust
 
-Gates are shell commands that come from the repository, and the hook runs
-them on every file Claude writes. So the hook runs a repository's gates only
-after the user has approved that exact `gates:` list:
+This approval applies to the Claude Code edit hook. Gates are shell
+commands declared by the repository. The hook runs matching edit gates on
+written files once the user approves the exact `gates:` list.
 
 ```text
 /sanchin:trust              # in Claude Code: shows the gates, asks you, records the approval
@@ -92,7 +105,7 @@ scripts/sanchin trust       # the same from a shell, through the project's wrapp
 The approval lives outside the repository (`$XDG_STATE_HOME/sanchin/`,
 by default `~/.local/state/sanchin/`), is shared by all the repository's
 worktrees, and lapses when the `gates:` list changes. Until then the hook
-still checks the docs, skips the gates and tells the user why.
+continues to check docs and skips the gates.
 `sanchin gates`, from a git hook or CI, is not affected: running it is
 already an explicit choice. *Why:* a repository nobody has read must not get
 to run commands just because a file was saved in it — and approving
@@ -102,8 +115,7 @@ commands is the user's decision, never the agent's.
 
 - The **validator** ([validator.md](validator.md)): process rules and doc
   references, independent of the stack.
-- The **hook**: one dispatcher for every `edit` gate, instead of one script
-  per tool.
-- `/sanchin:init` **detects** the gates a project already has (git hooks,
+- The **Claude Code edit hook**, which dispatches configured `edit` gates.
+- The `init` skill **detects** the gates a project already has (git hooks,
   CI, linters) and **proposes** the ones its stack is missing. It never
   installs anything without confirmation.

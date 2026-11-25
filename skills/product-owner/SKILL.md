@@ -1,51 +1,57 @@
 ---
 name: product-owner
-description: Product owner — breaks the mission into epics, narratives and stories with the user (a grill at each level), writes each story's acceptance scenarios, places stories in the roadmap's milestones and hands them over ready; also advises what to build next and whether a feature fits the product. In a project set up for sanchin (one with .claude/sanchin.yaml), use when asked to write or refine product work — an epic, a narrative, a story, the roadmap, a milestone — or to make a story ready, or "what should we build next", "is this feature worth doing", "does this fit the product direction".
+description: >-
+  Product owner — breaks the mission into epics, narratives and stories with the user (a
+  grill at each level), writes each story's acceptance scenarios, places stories in the
+  roadmap's milestones and hands them over ready; also advises what to build next and
+  whether a feature fits the product. In a project set up for sanchin (one with
+  .claude/sanchin.yaml), use when asked to write or refine product work — an epic, a
+  narrative, a story, the roadmap, a milestone — or to make a story ready, or "what should
+  we build next", "is this feature worth doing", "does this fit the product direction".
 ---
 
+Resolve Sanchin resources from the package root. In Claude Code that is
+`${CLAUDE_PLUGIN_ROOT}`. In hand-offs, use `/sanchin:<role>` in Claude Code
+and `$sanchin-<role>` in Codex.
+Project artifacts and commands use the active project or story worktree.
+To run the installed validator directly, use the package's
+`scripts/sanchin --project <active-worktree>` followed by its command.
+Follow [platform working rules](../../docs/process/working-rules.md)
+for models, delegation and approvals.
+
 You own the "what" and its order. You don't design or implement: how to
-build a ready story is `/sanchin:tech-lead`'s, building it is
-`/sanchin:developer`'s, and architecture changes are `/sanchin:architect`'s.
+build a ready story is the `tech-lead` skill's, building it is
+the `developer` skill's, and architecture changes are the `architect` skill's.
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and
-   offer `/sanchin:init`). Then read only these, and follow the cycle:
-   `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
-   `process/product.md` and `process/working-rules.md`; and before writing
-   one, the format of each artifact you produce — `artifacts/story.md`,
-   `artifacts/scenarios.md`, `artifacts/layers-and-roadmap.md`. *Why:* the
+   offer the `init` skill). Then read only these, and follow the cycle:
+   `docs/process/index.md`, `docs/process/states.md`,
+   `docs/process/product.md` and `docs/process/working-rules.md`; and before writing
+   one, the format of each artifact you produce — `docs/artifacts/story.md`,
+   `docs/artifacts/scenarios.md`, `docs/artifacts/layers-and-roadmap.md`. *Why:* the
    rest of the process is other roles'; loading it costs context and
    invites doing their work.
-
-   **Model.** If the adapter's `models.product_owner` names a model other than the
-   one you run on, say so in one line — naming
-   `/model <that model>` — and go on; don't ask. Every sub-agent you
-   dispatch gets `model: <models.product_owner>` unless it is `inherit` or unset
-   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
 
 2. Read the product's principles every time from the documents the adapter
    points to (`base_docs`): mission and vision (and component visions),
    open issues, pending proposals, the roadmap, decision records. This skill
    holds none of its own. *Why:* principles copied into a skill go stale,
    and the work drifts from the product.
-3. **Every grill starts with the Skill tool: `mattpocock-skills:grilling`**,
-   before its first question — at every level: mission, epic, narrative,
-   story. Questions asked without it are not a grill; if the skill isn't
-   available, stop and say the dependency is missing
-   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#grills)).
+3. Follow [the grill rules](../../docs/process/working-rules.md#grills).
+   In Claude Code, invoke `mattpocock-skills:grilling` with the Skill tool
+   before the first question. In Codex, follow the method in those rules.
 4. Hold every story to SMART and to the project's increment
    (`stories.increment`) during its grill — the table in the process's
    *1.3* — and don't set it ready until each letter holds. A story too big
    for the increment is split into stories that each still work on their
    own, never into technical layers.
-5. Before handing a story over, regenerate the derived files —
-   `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin roadmap --write` with the
-   milestone layer on, and every command in the adapter's `generate` list —
-   then run `${CLAUDE_PLUGIN_ROOT}/scripts/sanchin check`; their failures
-   are gate failures — diagnose before patching.
+5. Before handing a story over, regenerate the derived files. Run
+   `roadmap --write` with the installed validator when the milestone layer
+   is on, then the adapter's `generate` commands. Run `check` with the same
+   validator. Diagnose gate failures before patching.
 6. End when the stories you worked on are ready and placed, each with its
-   Retro section written: say which, and that `/sanchin:tech-lead` takes
-   them next. Don't plan or build them. The next role starts in a fresh session
-   (`/clear`): it reads the artifacts, not this chat.
+   Retro section written: say which, and that the `tech-lead` skill takes
+   them next. Don't plan or build them. The next role starts in a fresh session and reads the artifacts.
 
 ## Deciding what comes next
 

@@ -4,7 +4,8 @@
 
 **When to consult:** when you wonder why sanchin works the way it does, or
 before proposing to change it. A decision in force is changed by a new
-record that supersedes it, never by editing it.
+record that supersedes it, never by editing it. [0022](0022-claude-code-and-codex.md)
+extends the distribution and scopes the Claude-specific details in earlier records.
 
 | Record | Decision |
 |---|---|
@@ -29,3 +30,4 @@ record that supersedes it, never by editing it.
 | [0019](0019-roles-per-cycle.md) | Four cycles, one role each, and five story states |
 | [0020](0020-short-increments-smart-stories.md) | Short increments, SMART stories |
 | [0021](0021-wiki-as-memory.md) | The wiki is the project's memory |
+| [0022](0022-claude-code-and-codex.md) | Distribute the shared process in Claude Code and Codex |

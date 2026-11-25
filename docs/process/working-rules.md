@@ -10,45 +10,44 @@
   below. *Why:* starting the cycle already gave the direction; ending it
   hands the next decision back.
 - Put every judgement call to the user as selectable options, the
-  recommended one first, each with its trade-off; never a prose list, and
-  never only the recommendation. *Why:* the user picks faster than they
+  recommended one first, each with its trade-off. Use a numbered list if
+  the client offers no selection tool. *Why:* the user picks faster than they
   type, and needs the alternatives to judge the recommendation.
 
 ## Grills
 
-- **Every grill starts with the Skill tool — `mattpocock-skills:grilling`
-  — before its first question**: the product owner's at each level, the
-  tech-lead's technical grill, the architect's. It is not optional, and
-  asking good questions without it is not running it. *Why:* the skill
-  holds the method — the design tree, the frontier asked whole in each
-  round and recomputed after every answer, facts looked up by sub-agents
-  instead of asked, and the end only when the frontier is empty and the
-  user confirms the shared understanding. A grill run from memory keeps the
-  questions and drops the parts that catch what nobody thought to ask.
-- **Format:** each round's questions go to the user as selectable options
-  (below, *Pacing*), the recommended answer first — that is the skill's
-  "recommended answer", in this process's format. The rest of the method is
-  the skill's.
-- If the skill isn't available, stop and tell the user the dependency
-  (`mattpocock-skills`) is missing. Don't grill without it.
+- **Claude Code:** invoke `mattpocock-skills:grilling` with the Skill tool
+  before the first question. If the plugin dependency is missing, stop
+  and report it.
+- **Codex:** map the decisions as a tree. Inspect the repository for
+  answers it already contains. In each round ask the decisions that can
+  be answered now, with the recommendation and trade-off for each. Update
+  the tree after every answer and open the questions those answers make
+  possible. When no decisions remain, summarize the agreed outcome and
+  ask the user to confirm it before writing the artifact.
+- Use that format for every grill, including each product level, technical
+  planning and architecture. A round can span several prompts when the
+  interface limits how many questions can be asked at once.
 
 ## One session per cycle
 
 - Start each cycle — refinement, planning, delivery, architecture — in a
-  fresh session (`/clear`, or a new one). *Why:* the roles hand over through
+  fresh session. *Why:* the roles hand over through
   artifacts on `main`, not through the chat; a session that carries the
   earlier cycles re-reads all of them on every call, paying for context the
   next role doesn't use and letting a decision made in chat stand in for
   one that should be in the artifact.
-- The plugin's prompt hook enforces it: invoking a role's skill in a
+- The Claude Code plugin's prompt hook enforces it: invoking a role's skill in a
   session where another role's skill already ran is blocked with a reminder
   to `/clear` (the reviewer, `/sanchin:init` and `/sanchin:trust` are not
   cycles and pass). The adapter's `session.fresh_per_cycle` turns it to a
   warning (`warn`) or off (`off`).
+- In Codex, start a new session at the hand-off. This distribution does
+  not install a session hook or enforce `session.fresh_per_cycle`.
 
 ## Models
 
-- The adapter's `models` names a model per role (`product_owner`,
+- In Claude Code the adapter's `models` names a model per role (`product_owner`,
   `tech_lead`, `developer`, `architect`, `maintainer`, `reviewer`, `coach`):
   `opus`, `sonnet`, `haiku`, `fable` or `inherit` (the default: the
   session's model).
@@ -61,6 +60,25 @@
   the same every time, and a stop that always gets it costs a round trip. *Why:* deciding roles (product owner, tech lead,
   architect) pay for judgement; delivery follows a closed plan, and its
   output is most of a story's cost.
+- In Codex, choose the model in the client. The Claude model names in
+  `models` have no effect there.
+
+## Delegation
+
+Use sub-agents for the specified briefs when the client allows delegation.
+Otherwise do the briefs as separate passes in the current session. In
+delivery, work through component plans in order on the story's branch when
+you cannot delegate. Keep each plan's scope and verify acceptance across
+components after integrating them.
+
+## Generic review
+
+In Claude Code, run `/mattpocock-skills:code-review` as the first review.
+In Codex, make a separate pass over the same diff for general correctness
+and maintainability before the project review. Look for regressions,
+missing error handling and gaps in test coverage. Cite the source lines
+and label these findings `generic-standards` or `generic-spec` before
+checking project standards and the story's spec.
 
 ## Long and costly runs
 
@@ -118,10 +136,10 @@ gates, a force push — is still asked. *Why:* in a delivery cycle the plan
 is closed and these answers never changed; the stops cost round trips and
 attention, and the user who wants them keeps `ask`.
 
-**Approvals are the user's to set, never Claude's.** Don't edit the
-`approvals` section, by any tool, nor suggest that you do; when one would
-help, name the line for the user to write. A hook denies Claude's edits to
-it. *Why:* an agent that could write its own approvals has none.
+**Only the user sets approvals.** Show the line the user can write.
+Claude Code's adapter guard blocks agent edits to this section. Codex uses
+the same process rule. The client and the workspace still govern tool
+permissions and their own approval prompts on both platforms.
 
 ## Non-negotiable boundaries
 

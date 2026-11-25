@@ -3,7 +3,7 @@
 [README](../../README.md) · [Docs](../index.md) · [Artifacts](index.md)
 
 Every project keeps four documents the skills read instead of holding
-principles of their own. The adapter says where each one is; `/sanchin:init`
+principles of their own. The adapter says where each one is; `init`
 creates the missing ones and grills their content with the user.
 
 | Document | Says | Read by |

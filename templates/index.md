@@ -2,7 +2,7 @@
 
 [README](../README.md) · [Docs](../docs/index.md)
 
-Starting points `/sanchin:init` copies into a project that has none,
+Starting points `init` copies into a project that has none,
 translated to the project's language and terms. Formats and rules:
 [artifacts/index.md](../docs/artifacts/index.md).
 
@@ -14,5 +14,5 @@ translated to the project's language and terms. Formats and rules:
 | [epic.md](epic.md) | Epic with its ordered narratives; generated state. | With the epic layer on. |
 | [narrative.md](narrative.md) | One vertical slice and its stories; generated state. | With the narrative layer on. |
 | [milestone.md](milestone.md) | Objective, state line and the generated stories table. | With the milestone layer on: the roadmap. |
-| [sanchin](sanchin) | The project wrapper: finds the installed plugin and runs its validator with `--project` set to the repository. | Written by init as `scripts/sanchin`; git hooks and scripts call it. |
+| [sanchin](sanchin) | The project wrapper locates the [installed validator](../docs/validator.md#commands) and sets `--project` to the target worktree. | The init skill writes it as `scripts/sanchin` for Git hooks and scripts. |
 | [sanchin.yaml](sanchin.yaml) | The minimal adapter: no layers, one component. | A new project without docs; init fills it in. |

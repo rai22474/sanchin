@@ -129,7 +129,9 @@ class Config:
 def load_config(project_root: Path, adapter_file: Path | None = None) -> Config:
     adapter_file = adapter_file or project_root / ADAPTER_PATH
     if not adapter_file.is_file():
-        raise MissingAdapterError(f"{adapter_file}: no adapter; run /sanchin:init to create one")
+        raise MissingAdapterError(
+            f"{adapter_file}: no adapter. Use /sanchin:init in Claude Code or $sanchin-init in Codex."
+        )
     raw = _parse_yaml(adapter_file)
     return build_config(project_root, raw)
 

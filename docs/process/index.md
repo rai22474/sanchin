@@ -2,6 +2,9 @@
 
 [README](../../README.md) · [Docs](../index.md)
 
+Skills are named by role here. For platform commands, see the
+[role table](../../README.md#roles).
+
 How an idea becomes reviewed code on `main`: four cycles, each run by one
 role. This directory is the single source of the process — every role
 skill reads its own cycle here, and nothing else restates it. Read this
@@ -35,27 +38,27 @@ next cycle would make it for them.
 ```mermaid
 flowchart TD
   M([mission]) --> PO
-  subgraph PO["1 · product — /sanchin:product-owner"]
+  subgraph PO["1 · product — product-owner"]
     direction TB
     E["epics"] --> N["narratives"] --> S["stories + scenarios @pending"] --> R["roadmap: milestones"]
   end
   PO -- "story ready" --> TL
-  subgraph TL["2 · planning — /sanchin:tech-lead"]
+  subgraph TL["2 · planning — tech-lead"]
     direction TB
     P["plans per component"] --> T["technical grill"] --> X["cross-check"]
   end
   TL -- "story planned" --> DV
-  subgraph DV["3 · delivery — /sanchin:developer"]
+  subgraph DV["3 · delivery — developer"]
     direction TB
-    RD["scenarios red"] --> G["green"] --> V["reviews — /sanchin:reviewer"] --> C["close · retro · merge"]
+    RD["scenarios red"] --> G["green"] --> V["reviews — reviewer"] --> C["close · retro · merge"]
   end
   I([technical idea]) --> AR
-  subgraph AR["4 · architecture — /sanchin:architect"]
+  subgraph AR["4 · architecture — architect"]
     direction TB
     AG["technical grill"] --> ADR["decision record"] --> TS["technical stories"]
   end
   AR -- "technical stories" --> PO
-  B([bug]) --> MT["bug lane — /sanchin:maintainer"]
+  B([bug]) --> MT["bug lane — maintainer"]
   MT -. "behaviour changes" .-> PO
   MT -- "both reviews" --> V
 ```
@@ -68,6 +71,6 @@ flowchart TD
 | [4 · Architecture](architecture.md#4-architecture-cycle) | architect | a technical idea: a refactor, a new tool, an architecture change | an accepted decision record and its technical stories |
 | [Bug lane](bug-lane.md#bug-lane) | maintainer | a known bug | the issue resolved, merged — or a story for the product owner |
 
-`/sanchin:reviewer` serves delivery and the bug lane; `/sanchin:coach`
+`reviewer` serves delivery and the bug lane; `coach`
 reads every cycle's retros ([improvement.md](../improvement.md)).
 

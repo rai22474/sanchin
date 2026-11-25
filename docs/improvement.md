@@ -64,14 +64,17 @@ worth the cost of a rule.
 A skill change follows the same loop as a story:
 
 1. add an eval case that fails without the change
-   ([evals/](../evals), run with `evals/run.sh`);
+   ([evals/](../evals), run with `evals/run.sh` in Claude Code);
 2. change the skill;
 3. the new case passes and the existing ones still do.
+
+For changes to the Codex installation or runtime, also verify the affected
+flow in a fresh Codex session. The repository eval runner is for Claude Code.
 
 Every real correction becomes a regression case. *Why:* a skill rule that
 isn't tested drifts silently, just like code.
 
-## `/sanchin:coach`
+## Coach
 
 Reads the retros since its last run, counts findings by source and by rule,
 lists the signals that reached two, and proposes each change together with
@@ -81,5 +84,5 @@ what answers whether the two reviews are both worth their cost.
 ## Releases
 
 sanchin follows semantic versioning with a [changelog](../CHANGELOG.md).
-Projects pin a version. On upgrade, re-running `/sanchin:init` reports what
-the adapter needs.
+Projects pin a version. On upgrade, the `init` skill reports what the
+adapter needs. For Codex, follow the [update steps](codex.md#update) first.

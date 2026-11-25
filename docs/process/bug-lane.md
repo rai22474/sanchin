@@ -2,7 +2,7 @@
 
 [README](../../README.md) · [Docs](../index.md) · [Process](index.md)
 
-`/sanchin:maintainer` handles a known bug without the full ceremony:
+`maintainer` handles a known bug without the full ceremony:
 
 1. **The issue is the spec**: symptom, root cause once known, goal.
 2. **Diagnose first**: reproduce, find the root cause, write it in the

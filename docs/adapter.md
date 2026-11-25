@@ -3,9 +3,10 @@
 [README](../README.md) · [Docs](index.md)
 
 `.claude/sanchin.yaml` is the only place a project tells sanchin where its
-artifacts live and what it calls them. The skills, the validator and the
-hook all read it; none of them knows anything about a particular project.
-`/sanchin:init` writes it, mapping what already exists.
+artifacts live and what it calls them. The skills, the validator and
+Claude Code hooks read it. Both clients use the existing path so projects
+can add Codex without moving their adapter.
+`init` writes it, mapping what already exists.
 
 *Why one file:* a process that is reproducible across projects needs one
 seam between the generic and the specific. Everything project-specific goes
@@ -37,7 +38,7 @@ base_docs:                   # read by the skills (see artifacts/base-documents.
   issues: docs/issues/
   proposals: docs/proposals/
   templates: docs/templates/
-  process_log: docs/process-log.md   # where /sanchin:coach records its runs
+  process_log: docs/process-log.md   # where the coach skill records its runs
 
 docs:
   root: docs
@@ -74,16 +75,16 @@ scenarios:
   pending_tag: '@pending'      # on scenarios written ahead of their code; '' turns the rule off
   run_pending: 'uv run pytest -m pending {file}'   # optional: how the developer runs them in red
 
-models:                        # optional; per role: opus | sonnet | haiku | fable | inherit (default)
+models:                        # Claude Code only; per role: opus | sonnet | haiku | fable | inherit (default)
   product_owner: opus
   tech_lead: opus
   developer: sonnet
   reviewer: sonnet
 
 session:
-  fresh_per_cycle: block       # block (default) | warn | off — a role's cycle starts in a fresh session
+  fresh_per_cycle: block       # Claude Code only: block (default) | warn | off — a role's cycle starts in a fresh session
 
-approvals:                     # optional, the user's to write — Claude may not edit it; each: ask (default) | auto
+approvals:                     # optional, the user's to write; each: ask (default) | auto
   commit: auto                 # the commits the process prescribes, on main and on the story's branch
   costly_runs: auto            # the first costly run of a story's fix cycle
   merge: ask                   # merge + push + CI (or push + pull request), only with the local gates green
@@ -133,13 +134,13 @@ gates:
 | `stories.*` | validator, skills | Story rules ([artifacts/story.md](artifacts/story.md#story)). `rules_since` lets a project adopt the traceability rules without rewriting history; `legacy` lists stories (paths from the project root) that predate the rules — implemented ones that may lack a date, and ones already in flight when the project adopted sanchin, which may lack scenarios. `increment` is the short increment a story must fit, from ready to merged — free text the product owner and tech-lead size stories against ([process/product.md](process/product.md#13-stories-from-a-narrative)). |
 | `stories.states` | validator, skills | The five states in order — `pending`, `ready`, `planned`, `in_progress`, `implemented` — mapped to the project's words; each says what the role that sets it owes ([process/states.md](process/states.md#states)). Values must differ. |
 | `scenarios.*` | validator | Where feature files are and how a trace comment looks; `story` and `criteria` named groups are required. `pending_tag` (default `@pending`) marks scenarios written ahead of their code: every scenario whose stories are all unimplemented carries it, and none covering an implemented story does — the runner must skip it. `run_pending` (optional, read by the developer) is the command that runs them anyway, for the red run; without it the developer overrides the runner's tag filter. |
-| `models.*` | skills | The model per role — `product_owner`, `tech_lead`, `developer`, `architect`, `maintainer`, `reviewer`, `coach` — one of `opus`, `sonnet`, `haiku`, `fable`, `inherit` (default). The role's sub-agents run on it; the role itself, on starting, says so when the session runs another, and goes on ([process/working-rules.md](process/working-rules.md#models)). |
-| `approvals.*` | skills, hook | `commit`, `costly_runs`, `merge`: `ask` (default) or `auto`, done without asking — the steps each covers are in [process/working-rules.md](process/working-rules.md#approvals). The user's to set: a hook denies Claude's edits to this section. |
-| `session.fresh_per_cycle` | hook | `block` (default), `warn` or `off`: what the prompt hook does when a role's skill is invoked in a session another role already used ([process/working-rules.md](process/working-rules.md#one-session-per-cycle)). |
+| `models.*` | Claude Code skills | The model per role — `product_owner`, `tech_lead`, `developer`, `architect`, `maintainer`, `reviewer`, `coach` — one of `opus`, `sonnet`, `haiku`, `fable`, `inherit` (default). The role's sub-agents run on it; the role itself, on starting, says so when the session runs another, and goes on ([process/working-rules.md](process/working-rules.md#models)). |
+| `approvals.*` | skills, hook | `commit`, `costly_runs`, `merge`: `ask` (default) or `auto`, done without asking — the steps each covers are in [process/working-rules.md](process/working-rules.md#approvals). Only the user sets these values. A Claude Code hook guards this section. Client tool permissions still apply. |
+| `session.fresh_per_cycle` | Claude Code prompt hook | `block` (default), `warn` or `off`: what the prompt hook does when a role's skill is invoked in a session another role already used ([process/working-rules.md](process/working-rules.md#one-session-per-cycle)). |
 | `roadmap.*` | validator, product owner | Required with the `milestone` layer: where milestones live, the regex for a milestone's state line (a `state` group), and its three state values. Each story names its milestone (`keys.milestone`); `sanchin roadmap --write` regenerates each milestone's stories table ([artifacts/layers-and-roadmap.md](artifacts/layers-and-roadmap.md#roadmap)). |
 | `acceptance.*` | developer, maintainer | How to run acceptance scenarios, and whether a run is costly. |
 | `plans.*` | validator | Plan rules ([artifacts/plan.md](artifacts/plan.md#plan)). In `constitution.globs`, `{component}` expands to the plan's own component — the first component named in the plan's path — so a plan answers the global rules plus its component's; a plan whose path names no component answers every component's. |
-| `gates[]` | hook, `sanchin gates` | `level` is `edit`, `pre-commit`, `pre-push` or `ci`; `{file}` is replaced by the file path, and a gate without it runs once for all files; `timeout` in seconds, default 120 ([gates.md](gates.md)). |
+| `gates[]` | Claude Code edit hook, `sanchin gates` | `level` is `edit`, `pre-commit`, `pre-push` or `ci`; `{file}` is replaced by the file path, and a gate without it runs once for all files; `timeout` in seconds, default 120 ([gates.md](gates.md)). |
 
 Unknown keys are ignored by the validator; the skills may read keys it
 doesn't. Paths are relative to the project root.
@@ -147,5 +148,5 @@ doesn't. Paths are relative to the project root.
 ## Layers
 
 `layers: []` gives the smallest process: stories, scenarios, plans. Turn a
-layer on when the project needs it, not before. `/sanchin:init` turns on the
+layer on when the project needs it, not before. `init` turns on the
 layers it finds already in use.

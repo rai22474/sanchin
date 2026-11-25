@@ -2,11 +2,10 @@
 
 [README](../../README.md) · [Docs](../index.md) · [Process](index.md)
 
-`/sanchin:product-owner`, from the mission down. Each level is grilled
-with the user — a grill that starts by invoking
-`mattpocock-skills:grilling` ([working-rules.md](working-rules.md#grills))
-— before the next is written from it. Dispatch research sub-agents for anything the repository can
-answer, in parallel with asking the user the genuine judgement calls.
+`product-owner`, from the mission down. Each level is grilled
+with the user using the [grill rules](working-rules.md#grills) before the
+next is written. Research questions the repository can answer and bring
+only the remaining judgement calls to the user.
 *Why:* the user's attention is the scarcest input; a question a search can
 answer wastes it.
 
@@ -157,4 +156,4 @@ refinement taught. *Why:* one roadmap is one queue: functional and
 technical work compete for the same time, and the order is decided in one
 place.
 
-Stop: the story is ready for `/sanchin:tech-lead`.
+Stop: the story is ready for `tech-lead`.

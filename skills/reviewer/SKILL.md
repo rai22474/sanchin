@@ -1,7 +1,20 @@
 ---
 name: reviewer
-description: Reviews a story's changes against the project's own standards and against the story's spec (story, scenarios, plans, cross-component contract), judging whole modules rather than hunks, without repeating what a generic code review or the gates already found. In a project set up for sanchin (one with .claude/sanchin.yaml), use at the review step of a story or bug fix, or when asked to review changes against the project's standards or a story.
+description: >-
+  Reviews a story's changes against the project's own standards and against the story's spec
+  (story, scenarios, plans, cross-component contract), judging whole modules rather than
+  hunks, without repeating what a generic code review or the gates already found. In a
+  project set up for sanchin (one with .claude/sanchin.yaml), use at the review step of a
+  story or bug fix, or when asked to review changes against the project's standards or a
+  story.
 ---
+
+Resolve Sanchin resources from the package root. In Claude Code that is
+`${CLAUDE_PLUGIN_ROOT}`. In hand-offs, use `/sanchin:<role>` in Claude Code
+and `$sanchin-<role>` in Codex.
+Project artifacts and commands use the active project or story worktree.
+Follow [platform working rules](../../docs/process/working-rules.md)
+for models, delegation and approvals.
 
 The project's review. Generic smells are the generic review's job; what the
 gates check is the gates' job. You check what only this project's documents
@@ -11,8 +24,8 @@ can tell.
 
 - **Fixed point** — the story branch's merge-base with `main`
   (`git merge-base main HEAD`) unless the user says otherwise.
-- **Generic review** — run `/mattpocock-skills:code-review` over the same
-  fixed point first; your report is the delta over it.
+- **Generic review** — follow the [generic review rules](../../docs/process/working-rules.md#generic-review)
+  over the same fixed point first. Your report is the delta over it.
 - **The story** — its id; take it from the commits if not given; ask only
   if there are none or several.
 - **The adapter** — `.claude/sanchin.yaml`: components, where standards,
@@ -32,9 +45,9 @@ can tell.
 
 ## 3. Dispatch, in parallel
 
-One **Standards** sub-agent per touched component, one **Spec** sub-agent
-for the story, each with `model: <models.reviewer>` from the adapter unless
-it is `inherit` or unset. Each gets the generic review's findings with the rule: *do
+Run one **Standards** brief per touched component and one **Spec** brief
+for the story. Run them in parallel when delegation is available.
+Each gets the generic review's findings with the rule: *do
 not report anything already reported; contest a finding only when a project
 standard overrides it, naming which.*
 

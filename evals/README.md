@@ -1,10 +1,12 @@
-# Evals
+# Claude Code skill evals
 
 [README](../README.md) · [Docs](../docs/index.md)
 
 One case per critical skill rule, in the `claude plugin eval` format
 (`<case>/prompt.md`, `case.yaml`, `graders/`). Cases that need a project on
 disk seed it with `fixture.sh`, which only runs with `--scaffold`.
+This runner covers the Claude Code plugin. Check changes to the Codex
+adapter in a fresh session using the [Codex setup guide](../docs/codex.md).
 
 ```bash
 evals/run.sh --scaffold --allow-tools Bash Write Edit             # every case, with a no-plugin baseline

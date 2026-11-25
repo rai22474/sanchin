@@ -3,12 +3,13 @@
 [README](../README.md) · [Docs](index.md)
 
 A project with years of docs, its own templates and its own words doesn't
-start over. `/sanchin:init` maps what exists and only adds what is missing;
+start over. `init` maps what exists and only adds what is missing;
 the rules switch on from a cut-off date so history is never rewritten.
 
 ## 1. Map, don't move
 
-Run `/sanchin:init`. It looks for:
+Invoke `/sanchin:init` in Claude Code or `$sanchin-init` in Codex.
+The skill looks for:
 
 - the docs root and its entry index, and the navigation line its pages use;
 - stories (or user stories, `HU-*`, tickets as markdown): directory, file
@@ -42,9 +43,10 @@ progress without its plan — and plans written before the rules, which go to
 ## 3. Replace, one by one
 
 Where the project already had its own checks, replace them with the
-plugin's in separate, small changes:
+shared validator or gate commands in separate, small changes:
 
-- per-tool edit hooks → one `gates:` list in the adapter;
+- in Claude Code, per-tool edit hooks → one `gates:` list in the adapter;
+- in Codex, run edit gates explicitly or wire the checks into a Git hook;
 - a doc-references script → `sanchin check --only docs`;
 - traceability checks in a roadmap script → `sanchin check --only stories`,
   leaving the script only what is the project's own (generated tables,
@@ -54,16 +56,16 @@ Each replacement keeps the same gate green before and after.
 
 ## 4. Thin the entry points
 
-Move every process rule out of `CLAUDE.md` and project skills into either
-the plugin (if it is generic) or the project's standards (if it isn't), and
+Move every process rule out of `CLAUDE.md`, `AGENTS.md` and project skills into either
+the shared process (if it is generic) or the project's standards (if it isn't), and
 leave pointers behind ([context.md](context.md)). Rules that lived only in
 an agent's memory move the same way.
 
 ## 5. Use it on the next story
 
 The real test is the next story taken through the cycles:
-`/sanchin:product-owner` to ready, `/sanchin:tech-lead` to planned,
-`/sanchin:developer` to implemented. A project adopting mid-flight can
+`product-owner` to ready, `tech-lead` to planned,
+`developer` to implemented. A project adopting mid-flight can
 start where its story already is — a story with closed plans is planned.
 Its retro is the first signal for both the project's adapter and sanchin
 itself.

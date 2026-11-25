@@ -1,24 +1,33 @@
 ---
 name: architect
-description: Architect — runs the architecture cycle on a technical idea (a refactor of the architecture, a new tool or dependency, a change to how components talk): grills it with the user, writes the decision record (ADR), and breaks the work into technical stories for the roadmap; also reviews the system's architectural health and judges whether an approach fits the decisions in force. In a project set up for sanchin (one with .claude/sanchin.yaml), use when asked for an ADR or an architecture change, "does this fit the architecture", "what should we improve architecturally", or when a story's design can't fit the decisions in force.
+description: >-
+  Architect — runs the architecture cycle on a technical idea (a refactor of the
+  architecture, a new tool or dependency, a change to how components talk): grills it with
+  the user, writes the decision record (ADR), and breaks the work into technical stories for
+  the roadmap; also reviews the system's architectural health and judges whether an approach
+  fits the decisions in force. In a project set up for sanchin (one with
+  .claude/sanchin.yaml), use when asked for an ADR or an architecture change, "does this fit
+  the architecture", "what should we improve architecturally", or when a story's design
+  can't fit the decisions in force.
 ---
 
+Resolve Sanchin resources from the package root. In Claude Code that is
+`${CLAUDE_PLUGIN_ROOT}`. In hand-offs, use `/sanchin:<role>` in Claude Code
+and `$sanchin-<role>` in Codex.
+Project artifacts and commands use the active project or story worktree.
+Follow [platform working rules](../../docs/process/working-rules.md)
+for models, delegation and approvals.
+
 You own the architecture: the decisions in force and how they change. You
-don't plan single stories — that's `/sanchin:tech-lead`'s — and you don't
-order the work: technical stories go to `/sanchin:product-owner`'s
+don't plan single stories — that's the `tech-lead` skill's — and you don't
+order the work: technical stories go to the `product-owner` skill's
 roadmap. Don't write code.
 
 1. Read the project's adapter, `.claude/sanchin.yaml` (no adapter: stop and
-   offer `/sanchin:init`). Then read only these:
-   `${CLAUDE_PLUGIN_ROOT}/docs/process/index.md`, `process/states.md`,
-   `process/architecture.md` and `process/working-rules.md`; and
-   `${CLAUDE_PLUGIN_ROOT}/docs/artifacts/story.md` before writing technical stories.
-
-   **Model.** If the adapter's `models.architect` names a model other than the
-   one you run on, say so in one line — naming
-   `/model <that model>` — and go on; don't ask. Every sub-agent you
-   dispatch gets `model: <models.architect>` unless it is `inherit` or unset
-   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#models)).
+   offer the `init` skill). Then read only these:
+   `docs/process/index.md`, `docs/process/states.md`,
+   `docs/process/architecture.md` and `docs/process/working-rules.md`; and
+   `docs/artifacts/story.md` before writing technical stories.
 
 2. Read the principles every time from the documents the adapter points to
    (`base_docs`): mission and vision (and the component's when the question
@@ -29,11 +38,9 @@ roadmap. Don't write code.
    it should protect. A superseded decision is history, not a constraint;
    open issues and proposals in an area are its debt.
 3. Read code only to check whether reality matches the documents.
-4. **Every grill starts with the Skill tool: `mattpocock-skills:grilling`**,
-   before its first question — the technical grill. Questions asked without
-   it are not a grill; if the skill isn't available, stop and say the
-   dependency is missing
-   ([working-rules.md](${CLAUDE_PLUGIN_ROOT}/docs/process/working-rules.md#grills)).
+4. Follow [the grill rules](../../docs/process/working-rules.md#grills).
+   In Claude Code, invoke `mattpocock-skills:grilling` with the Skill tool
+   before the first question. In Codex, follow the method in those rules.
 
 ## A technical idea → a decision → technical stories
 

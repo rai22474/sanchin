@@ -2,15 +2,14 @@
 
 [README](../../README.md) · [Docs](../index.md) · [Process](index.md)
 
-`/sanchin:architect`, on a technical idea: a refactor of the architecture,
+`architect`, on a technical idea: a refactor of the architecture,
 a new tool or dependency, a change to how components talk, or a design the
 tech-lead couldn't fit in the decisions in force.
 
 ## 4.1 Technical grill
 
-Grill the idea with the user — starting by invoking
-`mattpocock-skills:grilling` ([working-rules.md](working-rules.md#grills)) —
-technical side: the problem it solves, the
+Use the [grill rules](working-rules.md#grills) to work through the technical
+idea with the user. Cover the problem it solves, the
 decisions in force it touches, the alternatives and their trade-offs.
 Research first — read the decision records, the constitution, and the code
 only to check whether reality matches them.

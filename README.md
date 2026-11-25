@@ -4,22 +4,23 @@
 
 <h1 align="center">sanchin</h1>
 
-<p align="center"><b>A reproducible, spec-first development process for Claude Code.</b><br>
+<p align="center"><b>A reproducible, spec-first development process for Claude Code and Codex.</b><br>
 Executable specs · validated artifacts · deterministic gates · a wiki as memory, disclosed progressively.</p>
 
 <p align="center">
   <a href="https://github.com/rai22474/sanchin/actions/workflows/ci.yml"><img src="https://github.com/rai22474/sanchin/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT license"></a>
   <img src="https://img.shields.io/badge/version-0.1.8-orange.svg" alt="version 0.1.8">
-  <img src="https://img.shields.io/badge/Claude%20Code-plugin-8A2BE2.svg" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/Claude%20Code%20%2B%20Codex-supported-8A2BE2.svg" alt="Claude Code and Codex">
 </p>
 
 ---
 
-sanchin is a Claude Code plugin that runs one development process, the same
-way on every story, in every project. A product owner grills the mission
-into epics, narratives and stories with you and places them in a roadmap; a
-tech-lead designs each story, one plan per component; a developer makes its
+sanchin is a shared development process, distributed as a Claude Code plugin
+and as repo-local skills for Codex. It runs the same process on every story,
+in every project. A product owner grills the mission into epics, narratives
+and stories with you and places them in a roadmap. A tech-lead designs each
+story, one plan per component. A developer makes its
 scenarios red, then green, through two reviews and a retro that feeds the
 process itself; an architect turns technical ideas into decision records. A
 validator and deterministic gates check every hand-off, so the process holds
@@ -39,9 +40,10 @@ against exactly that:
   maintained as a second description of the code.
 - **The current spec is executable.** How the system behaves today is its
   feature files, which the tests run — not prose someone keeps true by hand.
-- **Spec and code are checked continuously.** The validator runs on every
-  file the agent saves, in git hooks and in CI: criteria traced to
-  scenarios, doubts that block, plans complete, closed records untouched.
+- **Specs are checked at hand-offs.** The validator checks scenario
+  traceability, unresolved doubts, plan completeness and closed records.
+  It can run in Git hooks and CI. The Claude Code plugin also checks
+  edited files.
 
 And it isn't waterfall in Markdown. Phases only feel heavy when what flows
 through them is big; in sanchin each story is a short, SMART increment —
@@ -51,18 +53,12 @@ does.
 It grew inside a real multi-service project. Everything specific to that
 project went into an **adapter**; what is left is the process.
 
-```text
-/plugin marketplace add anthropics/claude-plugins-official   # for its dependency
-/plugin marketplace add rai22474/sanchin
-/plugin install sanchin@sanchin
-/sanchin:init
-```
-
 ### Where to start
 
 | If you want to… | Read |
 |---|---|
 | Try it now | [Quickstart](#quickstart) |
+| Use Codex | [Codex setup](docs/codex.md) |
 | Understand the process | [docs/process/](docs/process/index.md), then [docs/artifacts/](docs/artifacts/index.md) |
 | Configure a project | [docs/adapter.md](docs/adapter.md) |
 | Bring it into an existing repo | [docs/adopting.md](docs/adopting.md) |
@@ -71,6 +67,8 @@ project went into an **adapter**; what is left is the process.
 ## Contents
 
 - [Quickstart](#quickstart)
+  - [Codex](#codex)
+  - [Claude Code](#claude-code)
 - [How it works](#how-it-works)
   - [The four pillars](#the-four-pillars)
   - [The wiki: the project's memory](#the-wiki-the-projects-memory)
@@ -88,12 +86,26 @@ project went into an **adapter**; what is left is the process.
 
 ## Quickstart
 
-### Requirements
+Both installations use Git and the same [validator](docs/validator.md).
+Install `uv` (recommended) or use Python 3 with PyYAML and
+`gherkin-official`.
 
-- [Claude Code](https://claude.com/claude-code) with plugin support.
-- `git`.
-- [`uv`](https://docs.astral.sh/uv/) (recommended) or a `python3` with
-  PyYAML and `gherkin-official`, for the validator.
+### Codex
+
+With a Sanchin checkout at your chosen version, install the skills into
+the target project.
+
+```bash
+/path/to/sanchin/scripts/install-codex-skills /path/to/project
+```
+
+In the target project, start Codex and invoke `$sanchin-init`. See
+[Using Sanchin with Codex](docs/codex.md) for setup, role invocation and
+which checks run automatically.
+
+### Claude Code
+
+Use [Claude Code](https://claude.com/claude-code) with plugin support.
 
 Installing sanchin also installs its one dependency,
 [mattpocock-skills](https://github.com/mattpocock/skills), whose grilling
@@ -102,7 +114,7 @@ the official marketplace, `claude-plugins-official`, which must be added:
 without it sanchin installs but **does not load** (`/plugin` shows
 "failed to load").
 
-### 1. Install
+#### 1. Install
 
 ```text
 /plugin marketplace add anthropics/claude-plugins-official   # skip if already added
@@ -110,7 +122,7 @@ without it sanchin installs but **does not load** (`/plugin` shows
 /plugin install sanchin@sanchin
 ```
 
-### 2. Initialize the project
+#### 2. Initialize the project
 
 ```text
 /sanchin:init
@@ -125,7 +137,7 @@ templates and indexes. **Nothing is moved or renamed.** It also writes
 from your project — in your shell, git hooks and scripts — and keeps working
 when the plugin upgrades. Re-run `init` any time as a doctor.
 
-### 3. Approve the gates
+#### 3. Approve the gates
 
 ```text
 /sanchin:trust
@@ -136,7 +148,7 @@ list — and again whenever it changes. `/sanchin:trust` shows every command
 and asks you to confirm; only you can invoke it. From a shell,
 `scripts/sanchin trust` does the same ([gates.md](docs/gates.md#trust)).
 
-### 4. Build something
+#### 4. Build something
 
 ```text
 /sanchin:product-owner     # mission → epics → narratives → stories → roadmap
@@ -151,7 +163,7 @@ Check the project at any time — locally, in a git hook, or in CI:
 scripts/sanchin check        # the project wrapper init wrote; it finds the installed plugin
 ```
 
-### Sharing with your team
+#### Sharing with your team
 
 Add the plugin to the project's `.claude/settings.json` so everyone working
 on it gets the same process — both marketplaces, since the dependency comes
@@ -184,8 +196,7 @@ its own process, see [docs/adopting.md](docs/adopting.md).
 2. **Validated artifacts.** Stories, plans, scenario deltas, doubt markers
    and constitution checklists are checked by a validator, not by goodwill.
 3. **Deterministic gates.** What can be checked by code is checked by code,
-   at the earliest level where it is cheap — from the moment Claude saves a
-   file to CI.
+   at the earliest level where it is cheap. See the [gate levels](docs/gates.md).
 4. **A wiki as memory, disclosed progressively.** Everything the project
    decided lives in its docs — not in a chat, not in an agent's memory —
    and thin entry points and indexes that say *what* each document holds
@@ -226,7 +237,7 @@ down; every index says what each document holds and *when* to read it;
 every page links back up:
 
 ```text
-CLAUDE.md                     points to docs/index.md — never copies a rule
+AGENTS.md or CLAUDE.md         points to docs/index.md
 └─ docs/index.md              what each area holds, and when to read it
    └─ architecture/index.md   one line per standard: what it says, when it applies
       └─ smells/god-module.md ← the one page the task needs
@@ -290,17 +301,17 @@ cases nobody has seen yet.
 
 ### Roles
 
-| Skill | Role |
-|---|---|
-| `/sanchin:init` | Maps an existing project into the adapter (or scaffolds a new one), writes the `scripts/sanchin` wrapper, creates only what's missing, proposes gates. Re-run it as a doctor. |
-| `/sanchin:trust` | Shows the adapter's gates and records your approval, so the edit hook runs them. Only you can invoke it. |
-| `/sanchin:product-owner` | Grills the mission into epics, narratives and stories, writes their scenarios, places them in the roadmap's milestones, hands them over ready. Also: what to build next. |
-| `/sanchin:tech-lead` | Takes a ready story to planned: one plan per component, technical grill, cross-check. |
-| `/sanchin:developer` | Takes a planned story to merged code: scenarios red, green, reviews, close, merge. |
-| `/sanchin:architect` | Turns a technical idea — a refactor, a new tool — into a decision record and technical stories. Also: whether an approach fits. |
-| `/sanchin:maintainer` | Fixes a bug through the short lane, or escalates it to the product owner as a story. |
-| `/sanchin:reviewer` | Reviews against the project's standards and the story's spec, without repeating the gates or a generic review. |
-| `/sanchin:coach` | Reads the retros, finds what keeps recurring, proposes process changes with their eval. |
+| Claude Code | Codex | Role |
+|---|---|---|
+| `/sanchin:init` | `$sanchin-init` | Maps an existing project into the adapter (or scaffolds a new one), writes the `scripts/sanchin` wrapper, creates only what's missing, proposes gates. Re-run it as a doctor. |
+| `/sanchin:trust` | — | Shows the adapter's gates and records your approval for the Claude Code edit hook. Only you can invoke it. |
+| `/sanchin:product-owner` | `$sanchin-product-owner` | Grills the mission into epics, narratives and stories, writes their scenarios, places them in the roadmap's milestones, hands them over ready. Also: what to build next. |
+| `/sanchin:tech-lead` | `$sanchin-tech-lead` | Takes a ready story to planned: one plan per component, technical grill, cross-check. |
+| `/sanchin:developer` | `$sanchin-developer` | Takes a planned story to merged code: scenarios red, green, reviews, close, merge. |
+| `/sanchin:architect` | `$sanchin-architect` | Turns a technical idea — a refactor, a new tool — into a decision record and technical stories. Also: whether an approach fits. |
+| `/sanchin:maintainer` | `$sanchin-maintainer` | Fixes a bug through the short lane, or escalates it to the product owner as a story. |
+| `/sanchin:reviewer` | `$sanchin-reviewer` | Reviews against the project's standards and the story's spec, without repeating the gates or a generic review. |
+| `/sanchin:coach` | `$sanchin-coach` | Reads the retros, finds what keeps recurring, proposes process changes with their eval. |
 
 None of them holds principles of its own: they read the project's mission
 and vision, stack, constitution and glossary, wherever the adapter says
@@ -326,7 +337,7 @@ gates:
 
 ## Validator and gates
 
-From a project, through the wrapper `/sanchin:init` writes (`scripts/sanchin`):
+Run the validator from the project through the wrapper the init skill creates.
 
 ```bash
 scripts/sanchin check                    # every rule
@@ -335,13 +346,14 @@ scripts/sanchin roadmap [--write]        # check / regenerate the milestone tabl
 scripts/sanchin superseded [--write]     # print / rewrite the superseded-by table
 scripts/sanchin gates --level pre-push FILE…   # run the project's gates of one level
 scripts/sanchin git-hook pre-commit|pre-push   # the body of a git hook
-scripts/sanchin trust                    # approve the adapter's gates for the hook
+scripts/sanchin trust                    # approve gates for the Claude Code edit hook
 ```
 
 Exit code `0` means clean, `1` rule violations, `2` a missing or invalid
-adapter. The same check runs on every edit (plugin hook), in git hooks and
-in CI — see [docs/validator.md](docs/validator.md) for the rules and a
-pinned CI step, and [docs/gates.md](docs/gates.md) for the four gate levels.
+adapter. Run it at hand-offs and wire it into Git hooks and CI. Claude
+Code also has an edit hook. See [docs/validator.md](docs/validator.md) for
+the rules and a pinned CI step, and [docs/gates.md](docs/gates.md) for the
+four gate levels.
 
 ## How it compares
 
@@ -372,7 +384,7 @@ sanchin records its own decisions the way it asks projects to. Full records
 in [docs/decisions/](docs/decisions/index.md).
 
 <details>
-<summary>All 21 decisions, with their one-line why</summary>
+<summary>All 22 decisions, with their one-line why</summary>
 
 | | Decision | Why |
 |---|---|---|
@@ -392,11 +404,12 @@ in [docs/decisions/](docs/decisions/index.md).
 | [0014](docs/decisions/0014-role-skills-without-principles.md) | Role skills without principles of their own | Copied principles go stale and argue against the project. |
 | [0015](docs/decisions/0015-continuous-improvement.md) | Retro per story, rule of two, eval-driven skill changes | Skills drift like code unless tested like code. |
 | [0016](docs/decisions/0016-general-whys.md) | Every rule carries a general why | Anecdotes are matched by shape; reasons generalize. |
-| [0017](docs/decisions/0017-english.md) | sanchin in English, projects in their own language | Widest common language for the plugin; each team keeps its words. |
+| [0017](docs/decisions/0017-english.md) | sanchin in English, projects in their own language | Widest common language for the shared process. Each team keeps its words. |
 | [0018](docs/decisions/0018-depend-on-mattpocock-skills.md) | Depend on mattpocock-skills for grills and the generic review | A step that runs only if a plugin happens to be installed isn't reproducible. |
 | [0019](docs/decisions/0019-roles-per-cycle.md) | Four cycles, one role each, five story states | Each hand-off is a decision with an owner; the state says whose turn it is. |
 | [0020](docs/decisions/0020-short-increments-smart-stories.md) | Short increments, SMART stories | An agent writes faster than anyone can check; a short increment bounds what is built on a wrong turn. |
 | [0021](docs/decisions/0021-wiki-as-memory.md) | The wiki is the project's memory | Sessions start cold and chats are lost; what isn't written in the repository isn't remembered. |
+| [0022](docs/decisions/0022-claude-code-and-codex.md) | Distribute the shared process in Claude Code and Codex | Each client loads the same process through its own entry points. |
 
 </details>
 
@@ -410,6 +423,7 @@ Read [process/](docs/process/index.md) → [artifacts/](docs/artifacts/index.md)
 |---|---|
 | [process/](docs/process/index.md) | The four cycles, one document each, plus story states, the bug lane and working rules — each role reads only its own. |
 | [artifacts/](docs/artifacts/index.md) | Base documents, stories, scenarios, plans, layers and roadmap, issues — one document per format. |
+| [codex.md](docs/codex.md) | Install, use and update Sanchin in Codex. |
 | [adapter.md](docs/adapter.md) | Every field of `.claude/sanchin.yaml`. |
 | [validator.md](docs/validator.md) | Validator commands, rules, hooks and CI. |
 | [gates.md](docs/gates.md) | The four gate levels and how to declare a project's gates. |
@@ -433,7 +447,7 @@ PYTHONPATH=scripts:tests uv run --no-project --with pyyaml --with gherkin-offici
 # The repo's own docs
 scripts/sanchin check
 
-# Skill evals, with a no-plugin baseline (needs a sandbox; see evals/README.md)
+# Claude Code skill evals, with a no-plugin baseline (needs a sandbox; see evals/README.md)
 evals/run.sh --scaffold --allow-tools Bash Write Edit
 ```
 
@@ -444,7 +458,7 @@ semantic versioning; a change to the adapter format is a major version.
 
 *Sanchin* (三戦, "three battles") is the foundational kata of Naha-te and
 Gōjū-ryū: the form a karateka repeats for life, the same way every time,
-until it is second nature. This plugin is that idea applied to building
+until it is second nature. Sanchin applies that idea to building
 software with an agent — one process, repeated the same way on every story,
 in every project, and improved a little after each one.
 

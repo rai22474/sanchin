@@ -51,7 +51,7 @@ lives is the project's choice, mapped in the adapter.
 
 ## Thin entry points
 
-`CLAUDE.md`, skills and agent prompts point to indexes; they never copy
+`CLAUDE.md`, `AGENTS.md`, skills and agent prompts point to indexes; they never copy
 rules. *Why:* a rule copied into an entry point is a second version of it,
 and the two drift apart.
 
@@ -94,7 +94,7 @@ written by hand outside the generated block.
 ## Navigation line
 
 ```text
-CLAUDE.md                     points to docs/index.md — never copies a rule
+AGENTS.md or CLAUDE.md         points to docs/index.md
 └─ docs/index.md              what each area holds, and when to read it
    └─ architecture/index.md   one line per standard: what it says, when it applies
       └─ smells/god-module.md ← the one page the task needs

@@ -2,7 +2,7 @@
 
 [README](../../README.md) · [Docs](../index.md) · [Process](index.md)
 
-`/sanchin:developer`, on a planned story.
+`developer`, on a planned story.
 
 ## 3.1 Start
 
@@ -40,7 +40,9 @@ Write the steps behind the story's scenarios and apply the delta's changes
 With several plans, each goes to its own sub-agent, in parallel, in a
 worktree branched from the story's branch, touching only its component;
 the main session merges them into the story's branch and runs the
-acceptance scenarios there, since they cross components.
+acceptance scenarios there, since they cross components. If delegation
+is unavailable, work through plans in order as described in the
+[delegation rules](working-rules.md#delegation).
 
 - **Load the standards first**, through the project's index of standards
   ([context.md](../context.md)). A sub-agent gets the list of files that
@@ -52,6 +54,8 @@ acceptance scenarios there, since they cross components.
   design smells; the review is the second net, not the first.
 - **Follow the plan; record every deviation** in its Implementation
   section. A deviation that changes the design goes back to the tech-lead.
+- In Codex, run the configured [edit checks](../gates.md#edit-checks-in-codex)
+  on changed files before committing.
 - **Run every local gate before calling it green** ([gates.md](../gates.md)),
   **after committing on the story's branch**: `scripts/sanchin git-hook
   pre-push` and the project's own gate script, over the commit. *Why:* CI
@@ -68,10 +72,10 @@ acceptance scenarios there, since they cross components.
 
 ## 3.4 Reviews
 
-Right after committing on the story's branch, `/sanchin:reviewer` over the
-diff from the branch point. `/mattpocock-skills:code-review` runs first as
-the generic outside view and the reviewer reports only what that review
-didn't. Every finding is written into the plan's review section with its
+Right after committing on the story's branch, `reviewer` over the
+diff from the branch point. Start with the
+[generic review](working-rules.md#generic-review), then report findings
+specific to the project that it did not cover. Every finding is written into the plan's review section with its
 **source** label.
 
 *Why the label:* it is the only way to know later what each review adds,
